@@ -28,6 +28,7 @@ import { applySettings, collectSettings } from "./packSettings";
 import { CurseForge } from "./providers/curseforge";
 import { GitHub } from "./providers/github";
 import { nameFromFile, type FileQuery, type Provider, type ResolvedAddon } from "./providers/types";
+import { findAppUpdate } from "./selfUpdate";
 import { Store } from "./store";
 import { NEEDTOKNOW_FILE, applyTimerGroups, renameProfiles } from "./timers/needToKnow";
 import { timerGroups } from "./timers/presets";
@@ -49,6 +50,7 @@ export class Manager {
   constructor(
     readonly store: Store,
     private readonly onChange: (state: AppState) => void,
+    readonly appVersion: string,
   ) {
     this.cf = new CurseForge(() => this.store.settings.curseforgeApiKey);
     this.providers = {
@@ -64,7 +66,7 @@ export class Manager {
   // ---- state -----------------------------------------------------------------
 
   async state(): Promise<AppState> {
-    this.gameRunning = await isGameRunning();
+    this.gameRunning = await isGameRunning(this.settings.gamePath);
     return this.snapshot();
   }
 
@@ -80,6 +82,7 @@ export class Manager {
       keyStatus: this.cf.keyStatus,
       packs: [...this.store.packs].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
       appUpdate: this.appUpdate,
+      appVersion: this.appVersion,
     };
   }
 
@@ -214,7 +217,7 @@ export class Manager {
         }),
       );
     }
-    this.gameRunning = await isGameRunning();
+    this.gameRunning = await isGameRunning(this.settings.gamePath);
     if (errors.length) throw new Error(errors.join("\n"));
     return this.snapshot();
   }
@@ -247,7 +250,7 @@ export class Manager {
         job.stage = "Запуск";
         this.emit();
         try {
-          if (await isGameRunning()) throw new Error("Игра запущена. Закрой WoW и повтори.");
+          if (await isGameRunning(this.settings.gamePath)) throw new Error("Игра запущена. Закрой WoW и повтори.");
           await run(job);
           job.state = "done";
           job.stage = "Готово";
@@ -454,7 +457,7 @@ export class Manager {
 
   private async requireGameClosed(): Promise<string> {
     const p = this.requireGamePath();
-    if (await isGameRunning()) throw new Error("Игра запущена. Закрой WoW: она перезапишет настройки при выходе.");
+    if (await isGameRunning(this.settings.gamePath)) throw new Error("Игра запущена. Закрой WoW: она перезапишет настройки при выходе.");
     return p;
   }
 
@@ -482,6 +485,11 @@ export class Manager {
   setAppUpdate(update: AppUpdate | null): void {
     this.appUpdate = update;
     this.emit();
+  }
+
+  async checkAppUpdate(): Promise<AppState> {
+    this.appUpdate = await findAppUpdate(this.appVersion);
+    return this.snapshot();
   }
 
   /** True while installs are queued or running; quitting then could cut a move in half. */

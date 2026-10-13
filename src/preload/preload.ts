@@ -35,6 +35,7 @@ const api: Api = {
   openExternal: call("openExternal") as Api["openExternal"],
   openAddonsFolder: call("openAddonsFolder") as Api["openAddonsFolder"],
   installAppUpdate: call("installAppUpdate") as Api["installAppUpdate"],
+  checkAppUpdate: call("checkAppUpdate") as Api["checkAppUpdate"],
   pickGameFolder: call("pickGameFolder") as Api["pickGameFolder"],
   findGameFolders: call("findGameFolders") as Api["findGameFolders"],
   onState(cb) {

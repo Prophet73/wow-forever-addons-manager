@@ -15,7 +15,7 @@ export async function findAppUpdate(current: string): Promise<AppUpdate | null> 
   const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
     headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github+json" },
   });
-  if (!res.ok) return null;
+  if (!res.ok) throw new Error(`GitHub не ответил (HTTP ${res.status}). Попробуй позже.`);
   const r = (await res.json()) as { tag_name: string; html_url: string; assets: { name: string; browser_download_url: string; size: number }[] };
   const version = r.tag_name.replace(/^v/, "");
   const asset = r.assets.find((a) => a.name === ASSET);

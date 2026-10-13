@@ -1216,3 +1216,8 @@ a {
   gap: 12px;
   cursor: default;
 }
+
+.about-row {
+  align-items: center;
+  justify-content: space-between;
+}

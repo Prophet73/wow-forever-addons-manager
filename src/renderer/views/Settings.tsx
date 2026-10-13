@@ -4,6 +4,7 @@ import { IconCheck, IconFolder } from "../icons";
 import { KeyGuide } from "../KeyGuide";
 import { Checkbox, PageHeader } from "../ui";
 import { api, type ViewProps } from "../util";
+import { AboutApp } from "./AboutApp";
 import { RELEASE_OPTIONS } from "./Library";
 
 export function SettingsView({ state, run }: ViewProps) {
@@ -123,6 +124,8 @@ export function SettingsView({ state, run }: ViewProps) {
           Проверять обновления при запуске
         </Checkbox>
       </section>
+
+      <AboutApp state={state} run={run} />
     </div>
   );
 }

@@ -209,6 +209,8 @@ export interface AppState {
   keyStatus: "ok" | "none" | "rejected";
   packs: Pack[];
   appUpdate: AppUpdate | null;
+  /** Version of this app, e.g. "0.1.0-beta". */
+  appVersion: string;
 }
 
 export interface Api {
@@ -249,6 +251,8 @@ export interface Api {
   openAddonsFolder(): Promise<void>;
   /** Downloads the new version and restarts into it (or opens the release page when run from source). */
   installAppUpdate(): Promise<void>;
+  /** Asks GitHub for a newer version now; the result lands in AppState.appUpdate. */
+  checkAppUpdate(): Promise<AppState>;
   /** Asks for a folder and returns the WoW Forever client folder in or around it. */
   pickGameFolder(): Promise<string | null>;
   /** Forever clients found on this computer without asking. */

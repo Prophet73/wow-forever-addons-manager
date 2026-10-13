@@ -6,7 +6,7 @@ import type { AppState, ReleaseType, SearchParams, Settings, WtfCopyRequest } fr
 import { addonsDir } from "./game";
 import { findGameFolders, resolveGameFolder } from "./gameFolder";
 import { Manager } from "./manager";
-import { findAppUpdate, installAppUpdate } from "./selfUpdate";
+import { installAppUpdate } from "./selfUpdate";
 import { Store } from "./store";
 
 let win: BrowserWindow | null = null;
@@ -102,6 +102,7 @@ function registerIpc(): void {
     if (p) return shell.openPath(addonsDir(p));
   });
   ipcMain.handle("findGameFolders", () => findGameFolders());
+  ipcMain.handle("checkAppUpdate", () => manager.checkAppUpdate());
   ipcMain.handle("installAppUpdate", async () => {
     const update = manager.appUpdate;
     if (!update) return;
@@ -148,11 +149,11 @@ app.on("second-instance", () => {
 
 app.whenReady().then(async () => {
   const store = new Store(app.getPath("userData"));
-  manager = new Manager(store, push);
+  manager = new Manager(store, push, app.getVersion());
   void manager.cf.verifyKey().then(() => manager.state().then(push));
   registerIpc();
   createWindow();
-  void findAppUpdate(app.getVersion()).then((u) => manager.setAppUpdate(u), () => {});
+  void manager.checkAppUpdate().then(push, () => {});
 });
 
 app.on("window-all-closed", () => app.quit());
