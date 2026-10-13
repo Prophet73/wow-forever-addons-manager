@@ -4,7 +4,7 @@ import { IconCheck, IconFolder } from "../icons";
 import { KeyGuide } from "../KeyGuide";
 import { Checkbox, PageHeader } from "../ui";
 import { api, type ViewProps } from "../util";
-import { AboutApp } from "./AboutApp";
+import { AppUpdateCheck } from "./AppUpdateCheck";
 import { RELEASE_OPTIONS } from "./Library";
 
 export function SettingsView({ state, run }: ViewProps) {
@@ -105,6 +105,7 @@ export function SettingsView({ state, run }: ViewProps) {
 
       <section className="card form">
         <h3>Обновления</h3>
+        <AppUpdateCheck state={state} run={run} />
         <label>
           Какие версии ставить
           <select value={channel} onChange={(e) => setChannel(Number(e.target.value) as ReleaseType)}>
@@ -121,11 +122,10 @@ export function SettingsView({ state, run }: ViewProps) {
           <input type="number" min={0} max={10} value={backups} onChange={(e) => setBackups(Math.max(0, Math.min(10, Number(e.target.value) || 0)))} />
         </label>
         <Checkbox checked={checkOnStartup} onChange={setCheckOnStartup}>
-          Проверять обновления при запуске
+          Проверять обновления аддонов при запуске
         </Checkbox>
       </section>
 
-      <AboutApp state={state} run={run} />
     </div>
   );
 }

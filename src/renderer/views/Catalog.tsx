@@ -117,20 +117,21 @@ export function CatalogView({ state, run, setView }: ViewProps) {
             </option>
           ))}
         </select>
+        {cats.length > 0 && (
+          <select
+            className={categoryId !== null ? "picked" : undefined}
+            value={categoryId ?? ""}
+            onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : null)}
+          >
+            <option value="">Все категории</option>
+            {cats.map((c) => (
+              <option key={c.id} value={c.id}>
+                {categoryLabel(c.name)}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
-
-      {cats.length > 0 && (
-        <div className="chips scroll">
-          <button className={`chip${categoryId === null ? " active" : ""}`} onClick={() => setCategoryId(null)}>
-            Все
-          </button>
-          {cats.map((c) => (
-            <button key={c.id} className={`chip${categoryId === c.id ? " active" : ""}`} onClick={() => setCategoryId(c.id)}>
-              {categoryLabel(c.name)}
-            </button>
-          ))}
-        </div>
-      )}
 
       {err && <Banner kind="error">{err}</Banner>}
 

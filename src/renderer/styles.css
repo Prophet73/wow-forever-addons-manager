@@ -358,11 +358,16 @@ a {
 
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 14px;
 }
 .toolbar select {
   width: auto;
+}
+.toolbar select.picked {
+  border-color: var(--gold);
+  color: var(--gold-2);
 }
 .search-box {
   position: relative;
@@ -654,11 +659,6 @@ a {
   gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 16px;
-}
-.chips.scroll {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding-bottom: 6px;
 }
 .chip {
   border-radius: 999px;
@@ -1078,27 +1078,6 @@ a {
 }
 
 
-/* ---------- library filters ---------- */
-
-.filters {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.filters .chips {
-  margin-bottom: 0;
-}
-.chip-count {
-  margin-left: 4px;
-  font-size: 11px;
-  color: var(--muted);
-}
-.chip.active .chip-count {
-  color: inherit;
-  opacity: 0.8;
-}
-
 /* ---------- pack files ---------- */
 
 .pack-settings {
@@ -1220,4 +1199,11 @@ a {
 .about-row {
   align-items: center;
   justify-content: space-between;
+}
+.app-update-check {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
 }

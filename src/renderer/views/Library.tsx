@@ -101,7 +101,7 @@ function matches(a: TrackedAddon, f: Filter): boolean {
   return haystack.includes(q);
 }
 
-/** Search box plus source and category chips built from the addons in view. */
+/** Search box plus source and category pickers built from the addons in view. */
 function FilterBar(props: { addons: TrackedAddon[]; filter: Filter; onChange: (f: Filter) => void }) {
   const { addons, filter, onChange } = props;
   const sources = [...new Set(addons.map((a) => a.provider))];
@@ -110,34 +110,38 @@ function FilterBar(props: { addons: TrackedAddon[]; filter: Filter; onChange: (f
   const set = (patch: Partial<Filter>) => onChange({ ...filter, ...patch });
 
   return (
-    <div className="filters">
+    <div className="toolbar">
       <div className="search-box grow">
         <IconSearch size={16} />
         <input value={filter.query} onChange={(e) => set({ query: e.target.value })} placeholder="Поиск по названию, папке или категории" />
       </div>
-      {sources.length > 1 && (
-        <div className="chips">
-          <button className={`chip${filter.source === null ? " active" : ""}`} onClick={() => set({ source: null })}>
-            Все источники
-          </button>
-          {sources.map((s) => (
-            <button key={s} className={`chip${filter.source === s ? " active" : ""}`} onClick={() => set({ source: s })}>
-              {PROVIDER_LABEL[s]} <span className="chip-count">{count((a) => a.provider === s)}</span>
-            </button>
-          ))}
-        </div>
-      )}
       {categories.length > 0 && (
-        <div className="chips scroll">
-          <button className={`chip${filter.category === null ? " active" : ""}`} onClick={() => set({ category: null })}>
-            Все типы
-          </button>
+        <select
+          className={filter.category ? "picked" : undefined}
+          value={filter.category ?? ""}
+          onChange={(e) => set({ category: e.target.value || null })}
+        >
+          <option value="">Все типы · {addons.length}</option>
           {categories.map((c) => (
-            <button key={c} className={`chip${filter.category === c ? " active" : ""}`} onClick={() => set({ category: c })}>
-              {categoryLabel(c)} <span className="chip-count">{count((a) => !!a.categories?.includes(c))}</span>
-            </button>
+            <option key={c} value={c}>
+              {categoryLabel(c)} · {count((a) => !!a.categories?.includes(c))}
+            </option>
           ))}
-        </div>
+        </select>
+      )}
+      {sources.length > 1 && (
+        <select
+          className={filter.source ? "picked" : undefined}
+          value={filter.source ?? ""}
+          onChange={(e) => set({ source: (e.target.value || null) as Filter["source"] })}
+        >
+          <option value="">Все источники</option>
+          {sources.map((s) => (
+            <option key={s} value={s}>
+              {PROVIDER_LABEL[s]} · {count((a) => a.provider === s)}
+            </option>
+          ))}
+        </select>
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 {
   "name": "forever-addons",
   "productName": "Forever Addons",
-  "version": "0.1.1-beta",
+  "version": "0.1.2-beta",
   "description": "Addon manager for WoW Forever",
   "author": "prophet73",
   "license": "MIT",

@@ -4,7 +4,7 @@ import { IconCheck, IconRefresh } from "../icons";
 import { api, type Run } from "../util";
 
 /** The app's own version and a button that asks GitHub for a newer one. */
-export function AboutApp({ state, run }: { state: AppState; run: Run }) {
+export function AppUpdateCheck({ state, run }: { state: AppState; run: Run }) {
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(false);
 
@@ -15,11 +15,10 @@ export function AboutApp({ state, run }: { state: AppState; run: Run }) {
   };
 
   return (
-    <section className="card form">
-      <h3>О программе</h3>
+    <div className="app-update-check">
       <div className="row about-row">
         <span>
-          Forever Addons <b>{state.appVersion}</b>
+          Программа: Forever Addons <b>{state.appVersion}</b>
         </span>
         <button onClick={check} disabled={checking}>
           <IconRefresh size={16} className={checking ? "spin" : undefined} /> Проверить обновления
@@ -34,6 +33,6 @@ export function AboutApp({ state, run }: { state: AppState; run: Run }) {
           </span>
         )
       )}
-    </section>
+    </div>
   );
 }
