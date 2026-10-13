@@ -194,6 +194,6 @@ Pull request'ы приветствуются. Перед отправкой пр
 
 ## Лицензия
 
-[MIT](LICENSE): пользуйся, меняй и распространяй свободно.
+[MIT](LICENSE) ([на русском](LICENSE.ru.md)): пользуйся, меняй и распространяй свободно.
 
 Forever Addons — фанатский проект. Он не связан с Blizzard Entertainment, CurseForge или командой WoW Forever.
