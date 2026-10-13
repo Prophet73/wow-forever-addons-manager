@@ -83,7 +83,7 @@ There's nothing to install: the whole app is one file.
 3. **Run it** with a double-click.
 4. **Windows may complain** with a blue “Windows protected your PC” window. That's because I haven't bought a code-signing certificate: it costs hundreds of dollars a year. Click **More info** → **Run anyway**; it won't ask again.
 5. **Wait a couple of seconds**: on first start the app unpacks itself. Then the setup wizard opens.
-6. **Sign up at CurseForge and get a key.** It's free and takes a couple of minutes; without a key there's no addon catalog or search. [How to get a key](#curseforge-key).
+6. **Optional: a CurseForge key.** Everything works without it: ready-made packs, installing and updating addons. The key is only for searching the catalog for new addons. It's free and takes a couple of minutes: [how to get a key](#curseforge-key).
 
 ### Setup wizard
 
@@ -153,7 +153,7 @@ The app makes a backup before copying. **Characters** → **Backups** puts every
 
 ## CurseForge key
 
-CurseForge gives access to its catalog with a personal key. It's free, everyone has their own, and getting one takes a couple of minutes.
+The key is only for searching the CurseForge catalog: ready-made packs, installing and updating addons work without it. It's free, everyone has their own, and getting one takes a couple of minutes.
 
 1. Go to [console.curseforge.com](https://console.curseforge.com/) and sign in or sign up.
 2. If the site asks for an organization name, enter anything, e.g. your nickname.

@@ -146,12 +146,18 @@ export class CurseForge implements Provider {
         return r.data.filter((f) => f.isAvailable !== false).map(fromOfficial).sort(byDateDesc);
       },
       async () => {
-        const r = await this.json<{ data: WebFile[] }>(
-          `${WEB}/mods/${projectId}/files?pageIndex=0&pageSize=20&sort=dateCreated&sortDescending=true&gameVersionTypeId=${flavorTypeId}`,
-        );
-        // The filter param is honoured today, but double-check so a silent API change can't
-        // hand us a Classic Era build.
-        return r.data.filter((f) => f.gameVersionTypeIds?.includes(flavorTypeId)).map(fromWeb).sort(byDateDesc);
+        // The website hides alphas unless asked (VuhDo ships only alphas for Forever) and for some
+        // projects ignores the flavor filter, returning every game version. So filter here and page
+        // on, newest first, until a full release turns up: nothing older can beat it.
+        const found: RemoteFile[] = [];
+        for (let page = 0; page < 10; page++) {
+          const r = await this.json<{ data: WebFile[] }>(
+            `${WEB}/mods/${projectId}/files?pageIndex=${page}&pageSize=50&sort=dateCreated&sortDescending=true&removeAlphas=false&gameVersionTypeId=${flavorTypeId}`,
+          );
+          found.push(...r.data.filter((f) => f.gameVersionTypeIds?.includes(flavorTypeId)).map(fromWeb));
+          if (r.data.length < 50 || found.some((f) => f.releaseType === 1)) break;
+        }
+        return found.sort(byDateDesc);
       },
     );
   }
