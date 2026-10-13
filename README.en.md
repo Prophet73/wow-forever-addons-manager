@@ -56,6 +56,24 @@ Enjoy. If something breaks, let me know and I'll fix it.
 - **Updates itself.** When a new version is out, the app offers to update.
 - **Speaks English and Russian.** Switch in Settings at any time.
 
+## Ready-made pack: my priest
+
+To show how it works, here's my own priest interface for PvE and PvP. Download and apply it, and you get my 25 addons already set up.
+
+**[⬇ Download the priest pack](https://github.com/Prophet73/wow-forever-addons-manager/raw/release/packs/Priest-prophet73.fapack)** (a `.fapack` file, 60 KB)
+
+Inside: X-Perl frames (player, target and focus in one row under your character), VuhDo raid frames, NeedToKnow timers over the frames, BetterBlizzPlates nameplates with full health numbers, Details, Quartz, Prat and more.
+
+How to apply it:
+1. Close the game.
+2. In the app: **Packs** → **Open file** → pick the downloaded file.
+3. Press **Apply**, choose your character and confirm. The app installs the addons and lays out the settings, making a backup first.
+
+Keep in mind:
+- It's set up for a **2560×1440** monitor at UI scale **0.64**. At another resolution frames may sit differently — move them to taste.
+- The NeedToKnow timers are for a priest on the **Russian game client**: aura names have to match.
+- Don't like it? **Characters** → **Backups** → **Restore**.
+
 ## Get started in two minutes
 
 There's nothing to install: the whole app is one file.

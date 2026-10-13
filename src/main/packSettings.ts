@@ -4,16 +4,19 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { PackFileContents, PackFiles } from "./packFile";
-import { copyProfileKeys } from "./profileKeys";
+import { copyProfileKeys, dropProfileKeys } from "./profileKeys";
 import { NEEDTOKNOW_FILE, renameProfiles } from "./timers/needToKnow";
-import { accountDir, backupBeforeWrite, charDir, GROUP_FILES } from "./wtf";
+import { accountDir, backupBeforeWrite, charDir, GROUP_FILES, listCharacters } from "./wtf";
 import { copyXPerlPositions, xperlName } from "./xperlPositions";
 
 /** Character files that travel: everything but the game options, which depend on the PC. */
 const CHARACTER_FILES = [GROUP_FILES.addonList, GROUP_FILES.layout, GROUP_FILES.chat, GROUP_FILES.bindings, GROUP_FILES.macros].flat();
 
-/** Saved data that is private or not a setting: whispers, error logs, recorded fights. */
-const NOT_SETTINGS = new Set(["WhisperMessenger", "!BugGrabber", "BugSack", "Details_DataStorage"]);
+/** Saved data that is private or not a setting: whispers, error logs, recorded fights, quest progress. */
+const NOT_SETTINGS = new Set(["WhisperMessenger", "!BugGrabber", "BugSack", "Details_DataStorage", "CatQuest"]);
+
+/** Per-character files that hold chat history rather than settings (Prat's settings are account-wide). */
+const PRIVATE_CHARACTER_FILES = new Set(["Prat-3.0"]);
 
 const read = (file: string): string | null => (fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null);
 
@@ -23,8 +26,13 @@ const read = (file: string): string | null => (fs.existsSync(file) ? fs.readFile
  */
 export function collectSettings(gamePath: string, charId: string, addonFolders: string[]): Pick<PackFileContents, "from" | "files"> {
   const cdir = charDir(gamePath, charId);
-  const adir = accountDir(gamePath, charId.split("/")[0]);
+  const account = charId.split("/")[0];
+  const adir = accountDir(gamePath, account);
   const files: PackFiles = {};
+  // The sender's other characters on this account: their names stay out of the shared file.
+  const otherNames = listCharacters(gamePath)
+    .filter((c) => c.account === account && c.id !== charId)
+    .map((c) => c.name.split("-")[0]);
   for (const f of CHARACTER_FILES) {
     const text = read(path.join(cdir, f));
     if (text !== null) files[`character/${f}`] = text;
@@ -35,10 +43,10 @@ export function collectSettings(gamePath: string, charId: string, addonFolders: 
   for (const folder of new Set(addonFolders)) {
     if (NOT_SETTINGS.has(folder)) continue;
     const sv = `SavedVariables/${folder}.lua`;
-    const own = read(path.join(cdir, sv));
-    if (own !== null) files[`character/${sv}`] = own;
+    const own = !PRIVATE_CHARACTER_FILES.has(folder) && read(path.join(cdir, sv));
+    if (own) files[`character/${sv}`] = own;
     const shared = read(path.join(adir, sv));
-    if (shared !== null) files[`account/${sv}`] = shared;
+    if (shared !== null) files[`account/${sv}`] = dropProfileKeys(shared, otherNames);
   }
   return { from: charId.split("/")[2], files };
 }

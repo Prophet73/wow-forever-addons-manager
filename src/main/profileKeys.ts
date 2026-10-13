@@ -6,6 +6,20 @@
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
+ * Drops the one-line mappings of the given characters, so a shared file doesn't list the
+ * sender's other characters. Their profiles themselves stay.
+ */
+export function dropProfileKeys(text: string, names: string[]): string {
+  if (names.length === 0) return text;
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const keyed = new RegExp(`^\\s*\\["(?:${names.map(escape).join("|")})(?:[ -][^"]*)?"\\] = "(?:[^"\\\\]|\\\\.)*",?$`);
+  return text
+    .split(eol)
+    .filter((line) => !keyed.test(line))
+    .join(eol);
+}
+
+/**
  * Gives character `to` the same profile as character `from` in every one-line mapping keyed by
  * `from`. Names are the part of the WTF folder before "-"; the realm part is kept as it is.
  */
