@@ -83,6 +83,8 @@ function registerIpc(): void {
     const r = await dialog.showOpenDialog(win!, { title: t("Файл сборки"), properties: ["openFile"], filters: packFilters() });
     return r.canceled ? null : manager.importPackFile(r.filePaths[0]);
   });
+  ipcMain.handle("featuredPacks", () => manager.featuredPacks());
+  ipcMain.handle("installFeaturedPack", (_e, file: string) => manager.installFeaturedPack(String(file)));
   ipcMain.handle("wtfState", () => manager.wtfState());
   ipcMain.handle("wtfCopy", (_e, req: WtfCopyRequest) => manager.wtfCopy(req));
   ipcMain.handle("wtfRestore", (_e, id: string) => manager.wtfRestore(String(id)));

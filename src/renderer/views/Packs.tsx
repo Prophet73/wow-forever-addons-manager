@@ -4,6 +4,7 @@ import type { ApplyPackResult, Pack, PackAddon, TrackedAddon, WtfCharacter } fro
 import { IconCopy, IconDownload, IconEdit, IconFolder, IconPack, IconPlay, IconPlus, IconShare, IconTrash } from "../icons";
 import { Avatar, Banner, Checkbox, Empty, Modal, PageHeader } from "../ui";
 import { api, cleanError, formatDate, type ViewProps } from "../util";
+import { FeaturedPacks } from "./FeaturedPacks";
 import { plural, t } from "../../shared/i18n";
 
 function toPackAddon(a: TrackedAddon): PackAddon {
@@ -15,6 +16,14 @@ export function PacksView({ state, run }: ViewProps) {
   const [importing, setImporting] = useState(false);
   const [sharing, setSharing] = useState<{ pack: Pack; code: string } | null>(null);
   const [applying, setApplying] = useState<Pack | null>(null);
+
+  const applyFeatured = async (file: string) => {
+    await run(async () => {
+      const r = await api.installFeaturedPack(file);
+      setApplying(r.state.packs.find((p) => p.id === r.packId) ?? null);
+      return r.state;
+    });
+  };
 
   const fromInstalled = (): Partial<Pack> => ({
     name: "",
@@ -41,6 +50,8 @@ export function PacksView({ state, run }: ViewProps) {
           </>
         }
       />
+
+      <FeaturedPacks language={state.settings.language} onApply={applyFeatured} />
 
       {state.packs.length === 0 ? (
         <Empty icon={<IconPack size={40} />} title={t("Сборок пока нет")}>

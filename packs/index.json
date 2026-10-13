@@ -1,0 +1,15 @@
+[
+  {
+    "file": "Priest-prophet73.fapack",
+    "author": "prophet73",
+    "addons": 25,
+    "name": {
+      "ru": "Жрец — PvE/PvP",
+      "en": "Priest — PvE/PvP"
+    },
+    "description": {
+      "ru": "Рамки X-Perl в линию под персонажем, рейд VuhDo, таймеры NeedToKnow, неймплейты BetterBlizzPlates с полными числами здоровья. Под монитор 2560×1440 и масштаб интерфейса 0.64; таймеры под русский клиент.",
+      "en": "X-Perl frames in a row under your character, VuhDo raid, NeedToKnow timers, BetterBlizzPlates with full health numbers. Made for 2560×1440 at UI scale 0.64; timers match the Russian client."
+    }
+  }
+]

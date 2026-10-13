@@ -58,16 +58,16 @@ Enjoy. If something breaks, let me know and I'll fix it.
 
 ## Ready-made pack: my priest
 
-To show how it works, here's my own priest interface for PvE and PvP. Download and apply it, and you get my 25 addons already set up.
-
-**[⬇ Download the priest pack](https://github.com/Prophet73/wow-forever-addons-manager/raw/release/packs/Priest-prophet73.fapack)** (a `.fapack` file, 60 KB)
+To show how it works, here's my own priest interface for PvE and PvP. Apply it, and you get my 25 addons already set up.
 
 Inside: X-Perl frames (player, target and focus in one row under your character), VuhDo raid frames, NeedToKnow timers over the frames, BetterBlizzPlates nameplates with full health numbers, Details, Quartz, Prat and more.
 
 How to apply it:
 1. Close the game.
-2. In the app: **Packs** → **Open file** → pick the downloaded file.
-3. Press **Apply**, choose your character and confirm. The app installs the addons and lays out the settings, making a backup first.
+2. In the app, open **Packs**. At the top, under “Ready-made packs”, press **Apply** on the priest.
+3. Choose your character and confirm. The app downloads the pack, installs the addons and lays out the settings, making a backup first.
+
+Or as a file: [download the priest pack](https://github.com/Prophet73/wow-forever-addons-manager/raw/release/packs/Priest-prophet73.fapack) (60 KB), then **Packs** → **Open file**.
 
 Keep in mind:
 - It's set up for a **2560×1440** monitor at UI scale **0.64**. At another resolution frames may sit differently — move them to taste.

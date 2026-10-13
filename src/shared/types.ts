@@ -132,6 +132,15 @@ export interface Pack {
   settings?: { from: string; files: number };
 }
 
+/** A ready-made pack listed in the repository, with name and description in the current language. */
+export interface FeaturedPack {
+  file: string;
+  author: string;
+  addons: number;
+  name: string;
+  description: string;
+}
+
 export interface ApplyPackResult {
   queued: number;
   alreadyInstalled: number;
@@ -244,6 +253,10 @@ export interface Api {
   exportPackFile(id: string, charId: string): Promise<boolean>;
   /** Asks for a .fapack file and adds its pack; null if cancelled. */
   importPackFile(): Promise<AppState | null>;
+  /** Ready-made packs published in the repository. */
+  featuredPacks(): Promise<FeaturedPack[]>;
+  /** Downloads a ready-made pack and adds it (replacing an older copy); returns the new pack's id. */
+  installFeaturedPack(file: string): Promise<{ state: AppState; packId: string }>;
   wtfState(): Promise<WtfState>;
   wtfCopy(req: WtfCopyRequest): Promise<WtfState>;
   wtfRestore(backupId: string): Promise<WtfState>;

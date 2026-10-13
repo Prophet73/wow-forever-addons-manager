@@ -4,6 +4,7 @@ import path from "node:path";
 import { addonKey, needsAction } from "../shared/addon";
 import type { WowClass } from "../shared/classes";
 import type {
+  FeaturedPack,
   AppUpdate,
   AddonRef,
   AppState,
@@ -21,6 +22,7 @@ import type {
 } from "../shared/types";
 import { addonsDir, isGameRunning } from "./game";
 import { resolveGameFolder } from "./gameFolder";
+import { downloadFeaturedPack, listFeaturedPacks } from "./featuredPacks";
 import { deleteBackup, installFile, removeFolders, restoreBackup } from "./installer";
 import { readPackFile, writePackFile } from "./packFile";
 import { decodePack, dedupeAddons, encodePack } from "./packs";
@@ -35,7 +37,7 @@ import { timerGroups } from "./timers/presets";
 import { listAddonFolders, readToc } from "./toc";
 import * as wtf from "./wtf";
 import { copyXPerlPositions, xperlPositionsFile } from "./xperlPositions";
-import { setLanguage, t } from "../shared/i18n";
+import { language, setLanguage, t } from "../shared/i18n";
 
 /** Owns the tracked-addon list and runs install/update jobs one at a time. */
 export class Manager {
@@ -436,14 +438,35 @@ export class Manager {
 
   /** Adds the pack from a .fapack file and keeps the file for its settings. */
   importPackFile(file: string): AppState {
+    this.addPackFile(file);
+    return this.snapshot();
+  }
+
+  featuredPacks(): Promise<FeaturedPack[]> {
+    return listFeaturedPacks(language());
+  }
+
+  /** Downloads a ready-made pack and adds it; an earlier copy of the same pack is replaced, not duplicated. */
+  async installFeaturedPack(file: string): Promise<{ state: AppState; packId: string }> {
+    const tmp = path.join(this.store.dir, "featured", file);
+    await downloadFeaturedPack(file, tmp);
+    const name = readPackFile(tmp).name.trim();
+    for (const old of this.store.packs.filter((p) => p.name === name && p.settings)) this.deletePack(old.id);
+    const pack = this.addPackFile(tmp);
+    fs.rmSync(tmp, { force: true });
+    return { state: this.snapshot(), packId: pack.id };
+  }
+
+  private addPackFile(file: string): Pack {
     const contents = readPackFile(file);
     const before = new Set(this.store.packs.map((p) => p.id));
     this.savePack(contents);
-    const pack = this.store.packs.find((p) => !before.has(p.id))!;
-    fs.mkdirSync(path.dirname(this.packFilePath(pack.id)), { recursive: true });
-    fs.copyFileSync(file, this.packFilePath(pack.id));
-    this.store.upsertPack({ ...pack, settings: { from: contents.from, files: Object.keys(contents.files).length } });
-    return this.snapshot();
+    const added = this.store.packs.find((p) => !before.has(p.id))!;
+    fs.mkdirSync(path.dirname(this.packFilePath(added.id)), { recursive: true });
+    fs.copyFileSync(file, this.packFilePath(added.id));
+    const pack = { ...added, settings: { from: contents.from, files: Object.keys(contents.files).length } };
+    this.store.upsertPack(pack);
+    return pack;
   }
 
   // ---- characters (WTF) ----------------------------------------------------------

@@ -20,6 +20,8 @@ const api: Api = {
   importPack: call("importPack") as Api["importPack"],
   exportPackFile: call("exportPackFile") as Api["exportPackFile"],
   importPackFile: call("importPackFile") as Api["importPackFile"],
+  featuredPacks: call("featuredPacks") as Api["featuredPacks"],
+  installFeaturedPack: call("installFeaturedPack") as Api["installFeaturedPack"],
   wtfState: call("wtfState") as Api["wtfState"],
   wtfCopy: call("wtfCopy") as Api["wtfCopy"],
   wtfRestore: call("wtfRestore") as Api["wtfRestore"],

@@ -355,6 +355,9 @@ export const EN: Record<string, string> = {
   "только что": "just now",
   "файлов": "files",
   "файлов). Можно заходить в игру.": "files). You can log in.",
+  "Готовые сборки": "Ready-made packs",
+  "Настроенный интерфейс от других игроков: аддоны вместе с настройками. Нажми «Применить» и выбери персонажа.": "Interfaces set up by other players: addons together with their settings. Press “Apply” and choose a character.",
+  "Не удалось загрузить готовые сборки (HTTP {status}).": "Couldn't load the ready-made packs (HTTP {status}).",
 };
 
 /** English singular and plural, keyed by the Russian singular passed to plural(). */

@@ -1220,3 +1220,19 @@ a {
   font-weight: 400;
   margin-left: auto;
 }
+
+/* ---------- featured packs ---------- */
+
+.featured {
+  margin-bottom: 24px;
+}
+.featured h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+.featured > p {
+  margin: 0 0 12px;
+}
+.featured-card {
+  border-color: rgba(224, 179, 84, 0.35);
+}
