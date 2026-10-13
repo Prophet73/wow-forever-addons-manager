@@ -1,5 +1,6 @@
 import { IconExternal } from "./icons";
 import { api } from "./util";
+import { t } from "../shared/i18n";
 
 const CONSOLE_URL = "https://console.curseforge.com/";
 
@@ -8,16 +9,16 @@ export function KeyGuide() {
   return (
     <ol className="key-guide">
       <li>
-        Открой сайт CurseForge для разработчиков и войди или зарегистрируйся. Это бесплатно.{" "}
+        {t("Открой сайт CurseForge для разработчиков и войди или зарегистрируйся. Это бесплатно.")}{" "}
         <button className="sm" onClick={() => api.openExternal(CONSOLE_URL)}>
           <IconExternal size={14} /> console.curseforge.com
         </button>
       </li>
-      <li>Если сайт попросит название организации, впиши любое, например свой ник.</li>
+      <li>{t("Если сайт попросит название организации, впиши любое, например свой ник.")}</li>
       <li>
-        Слева открой <b>API Keys</b> и скопируй ключ. Он длинный и начинается с <span className="mono">$2a$10$</span>.
+        {t("Слева открой")} <b>API Keys</b> {t("и скопируй ключ. Он длинный и начинается с")} <span className="mono">$2a$10$</span>.
       </li>
-      <li>Вставь его в поле ниже.</li>
+      <li>{t("Вставь его в поле ниже.")}</li>
     </ol>
   );
 }

@@ -5,6 +5,7 @@ import path from "node:path";
 import type { AppUpdate } from "../shared/types";
 import { download } from "./installer";
 import { USER_AGENT } from "./providers/types";
+import { t } from "../shared/i18n";
 
 const REPO = "Prophet73/wow-forever-addons-manager";
 /** Every release ships the exe under this name, so the README's download link never changes. */
@@ -15,7 +16,7 @@ export async function findAppUpdate(current: string): Promise<AppUpdate | null> 
   const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
     headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github+json" },
   });
-  if (!res.ok) throw new Error(`GitHub не ответил (HTTP ${res.status}). Попробуй позже.`);
+  if (!res.ok) throw new Error(t("GitHub не ответил (HTTP {status}). Попробуй позже.", { status: res.status }));
   const r = (await res.json()) as { tag_name: string; html_url: string; assets: { name: string; browser_download_url: string; size: number }[] };
   const version = r.tag_name.replace(/^v/, "");
   const asset = r.assets.find((a) => a.name === ASSET);

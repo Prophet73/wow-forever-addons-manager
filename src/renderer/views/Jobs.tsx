@@ -1,6 +1,7 @@
 import { IconDownload } from "../icons";
 import { Empty, PageHeader } from "../ui";
 import type { ViewProps } from "../util";
+import { t } from "../../shared/i18n";
 
 const KIND: Record<string, string> = {
   install: "Установка",
@@ -13,18 +14,18 @@ const KIND: Record<string, string> = {
 export function JobsView({ state }: ViewProps) {
   return (
     <div className="page">
-      <PageHeader title="Загрузки" subtitle="Установки и обновления идут в фоне по очереди" />
+      <PageHeader title={t("Загрузки")} subtitle={t("Установки и обновления идут в фоне по очереди")} />
       {state.jobs.length === 0 ? (
-        <Empty icon={<IconDownload size={40} />} title="Пока пусто" />
+        <Empty icon={<IconDownload size={40} />} title={t("Пока пусто")} />
       ) : (
         <div className="job-list">
           {state.jobs.map((j) => (
             <div className={`job ${j.state}`} key={j.id}>
               <div className="job-head">
                 <span className="job-name">{j.name}</span>
-                <span className="muted small">{KIND[j.kind] ?? j.kind}</span>
+                <span className="muted small">{KIND[j.kind] ? t(KIND[j.kind]) : j.kind}</span>
                 <span className={`job-state ${j.state}`}>
-                  {j.state === "queued" ? "в очереди" : j.state === "running" ? j.stage : j.state === "done" ? "готово" : "ошибка"}
+                  {j.state === "queued" ? t("в очереди") : j.state === "running" ? j.stage : j.state === "done" ? t("готово") : t("ошибка")}
                 </span>
               </div>
               {j.state === "running" && (

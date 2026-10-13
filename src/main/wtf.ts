@@ -3,6 +3,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import type { WtfBackup, WtfCharacter, WtfCopyRequest, WtfGroup, WtfState } from "../shared/types";
 import { workDir } from "./game";
+import { t } from "../shared/i18n";
 
 /** Per-character files in WTF\Account\<acc>\<realm>\<char>\ that make up each group. */
 export const GROUP_FILES: Record<WtfGroup, string[]> = {
@@ -40,13 +41,13 @@ const safeSegment = (p: string) => !!p && p !== "." && p !== ".." && !/[\\/:]/.t
 /** Rejects ids that are not exactly account/realm/character inside WTF\Account. */
 export function charDir(gamePath: string, id: string): string {
   const parts = id.split("/");
-  if (parts.length !== 3 || !parts.every(safeSegment)) throw new Error(`Неверный персонаж: ${id}`);
+  if (parts.length !== 3 || !parts.every(safeSegment)) throw new Error(t("Неверный персонаж: {id}", { id: id }));
   return path.join(accountRoot(gamePath), ...parts);
 }
 
 /** WTF\Account\<account>, home of the account-wide SavedVariables. */
 export function accountDir(gamePath: string, account: string): string {
-  if (!safeSegment(account)) throw new Error(`Неверный аккаунт: ${account}`);
+  if (!safeSegment(account)) throw new Error(t("Неверный аккаунт: {account}", { account: account }));
   return path.join(accountRoot(gamePath), account);
 }
 
@@ -114,7 +115,7 @@ function filesFor(req: WtfCopyRequest): string[] {
   const files: string[] = [];
   for (const g of req.groups) files.push(...(GROUP_FILES[g] ?? []));
   for (const sv of req.savedVariables) {
-    if (/[\\/]|\.\./.test(sv)) throw new Error(`Неверное имя файла: ${sv}`);
+    if (/[\\/]|\.\./.test(sv)) throw new Error(t("Неверное имя файла: {sv}", { sv: sv }));
     files.push(path.join("SavedVariables", `${sv}.lua`), path.join("SavedVariables", `${sv}.lua.bak`));
   }
   return files;
@@ -178,9 +179,9 @@ export async function backupBeforeWrite(gamePath: string, targets: string[], fil
 export async function copySettings(gamePath: string, req: WtfCopyRequest, accountFiles: string[] = []): Promise<string[]> {
   const src = charDir(gamePath, req.from);
   const targets = [...new Set(req.to)].filter((t) => t !== req.from);
-  if (targets.length === 0) throw new Error("Выбери, на кого копировать.");
+  if (targets.length === 0) throw new Error(t("Выбери, на кого копировать."));
   const files = filesFor(req).filter((f) => fs.existsSync(path.join(src, f)));
-  if (files.length === 0) throw new Error("Нечего копировать: у исходного персонажа нет выбранных файлов.");
+  if (files.length === 0) throw new Error(t("Нечего копировать: у исходного персонажа нет выбранных файлов."));
 
   await backupBeforeWrite(gamePath, targets, files, accountFiles);
   for (const t of targets) {
@@ -195,7 +196,7 @@ export async function copySettings(gamePath: string, req: WtfCopyRequest, accoun
 
 /** Puts back every file a copy changed and deletes the files it created. */
 export async function restoreBackup(gamePath: string, backupId: string): Promise<void> {
-  if (!/^[\w-]+$/.test(backupId)) throw new Error("Неверный бэкап.");
+  if (!/^[\w-]+$/.test(backupId)) throw new Error(t("Неверный бэкап."));
   const bdir = path.join(backupsRoot(gamePath), backupId);
   const meta = JSON.parse(await fsp.readFile(path.join(bdir, "backup.json"), "utf8")) as BackupMeta;
 

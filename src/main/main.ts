@@ -8,6 +8,7 @@ import { findGameFolders, resolveGameFolder } from "./gameFolder";
 import { Manager } from "./manager";
 import { installAppUpdate } from "./selfUpdate";
 import { Store } from "./store";
+import { setLanguage, t } from "../shared/i18n";
 
 let win: BrowserWindow | null = null;
 let manager: Manager;
@@ -43,7 +44,7 @@ function createWindow(): void {
   win.webContents.on("will-navigate", (e) => e.preventDefault());
 }
 
-const PACK_FILTERS = [{ name: "Сборка Forever Addons", extensions: ["fapack"] }];
+const packFilters = () => [{ name: t("Сборка Forever Addons"), extensions: ["fapack"] }];
 
 /** Sites the renderer may open in the user's browser. */
 const EXTERNAL_ALLOWED = /^https:\/\/((www\.|console\.)?curseforge\.com|github\.com)\//;
@@ -70,16 +71,16 @@ function registerIpc(): void {
   ipcMain.handle("exportPackFile", async (_e, id: string, charId: string) => {
     const pack = manager.store.packs.find((p) => p.id === String(id));
     const r = await dialog.showSaveDialog(win!, {
-      title: "Сохранить сборку с настройками",
-      defaultPath: `${(pack?.name ?? "Сборка").replace(/[\\/:*?"<>|]/g, "_")}.fapack`,
-      filters: PACK_FILTERS,
+      title: t("Сохранить сборку с настройками"),
+      defaultPath: `${(pack?.name ?? t("Сборка")).replace(/[\\/:*?"<>|]/g, "_")}.fapack`,
+      filters: packFilters(),
     });
     if (r.canceled || !r.filePath) return false;
     manager.exportPackFile(String(id), String(charId), r.filePath);
     return true;
   });
   ipcMain.handle("importPackFile", async () => {
-    const r = await dialog.showOpenDialog(win!, { title: "Файл сборки", properties: ["openFile"], filters: PACK_FILTERS });
+    const r = await dialog.showOpenDialog(win!, { title: t("Файл сборки"), properties: ["openFile"], filters: packFilters() });
     return r.canceled ? null : manager.importPackFile(r.filePaths[0]);
   });
   ipcMain.handle("wtfState", () => manager.wtfState());
@@ -109,15 +110,15 @@ function registerIpc(): void {
     // Set by electron-builder's portable launcher; absent when running from source.
     const exe = process.env.PORTABLE_EXECUTABLE_FILE;
     if (!exe) return shell.openExternal(update.pageUrl);
-    if (manager.busy) throw new Error("Дождись, пока закончатся установки, и обнови программу.");
+    if (manager.busy) throw new Error(t("Дождись, пока закончатся установки, и обнови программу."));
     await installAppUpdate(update, exe, (f) => manager.setAppUpdate({ ...update, progress: f ?? 0 }));
     app.quit();
   });
   ipcMain.handle("pickGameFolder", async () => {
-    const r = await dialog.showOpenDialog(win!, { title: "Папка WoW Forever", properties: ["openDirectory"] });
+    const r = await dialog.showOpenDialog(win!, { title: t("Папка WoW Forever"), properties: ["openDirectory"] });
     if (r.canceled) return null;
     const found = await resolveGameFolder(r.filePaths[0]);
-    if (!found) throw new Error(`В «${r.filePaths[0]}» и рядом нет WowB.exe. Выбери папку, куда установлен WoW Forever.`);
+    if (!found) throw new Error(t("В «{p0}» и рядом нет WowB.exe. Выбери папку, куда установлен WoW Forever.", { p0: r.filePaths[0] }));
     return found;
   });
 }
@@ -149,6 +150,8 @@ app.on("second-instance", () => {
 
 app.whenReady().then(async () => {
   const store = new Store(app.getPath("userData"));
+  if (!store.settings.language) store.updateSettings({ language: app.getLocale().startsWith("ru") ? "ru" : "en" });
+  setLanguage(store.settings.language || "ru");
   manager = new Manager(store, push, app.getVersion());
   void manager.cf.verifyKey().then(() => manager.state().then(push));
   registerIpc();

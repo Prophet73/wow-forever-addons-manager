@@ -6,6 +6,7 @@ import { Readable, Transform } from "node:stream";
 import yauzl from "yauzl";
 import type { BackupEntry, RemoteFile } from "../shared/types";
 import { addonsDir, workDir } from "./game";
+import { t } from "../shared/i18n";
 
 export type Progress = (stage: string, fraction: number | null) => void;
 
@@ -43,8 +44,8 @@ async function fetchFile(url: string): Promise<Response> {
     await new Promise((r) => setTimeout(r, delay));
     res = await get();
   }
-  if (res.status === 403) throw new Error("Не удалось скачать файл: HTTP 403. Если версия вышла только что, CDN её ещё не раздаёт: попробуй через несколько минут.");
-  if (!res.ok || !res.body) throw new Error(`Не удалось скачать файл: HTTP ${res.status}`);
+  if (res.status === 403) throw new Error(t("Не удалось скачать файл: HTTP 403. Если версия вышла только что, CDN её ещё не раздаёт: попробуй через несколько минут."));
+  if (!res.ok || !res.body) throw new Error(t("Не удалось скачать файл: HTTP {status}", { status: res.status }));
   return res;
 }
 
@@ -60,7 +61,7 @@ export async function download(url: string, dest: string, expectedSize: number, 
       const now = Date.now();
       if (now - lastReport > 150) {
         lastReport = now;
-        onProgress("Скачивание", total ? received / total : null);
+        onProgress(t("Скачивание"), total ? received / total : null);
       }
       cb(null, chunk);
     },
@@ -69,7 +70,7 @@ export async function download(url: string, dest: string, expectedSize: number, 
   await pipeline(Readable.fromWeb(res.body as never), counter, fs.createWriteStream(tmp));
   if (expectedSize && received !== expectedSize) {
     await fsp.rm(tmp, { force: true });
-    throw new Error(`Файл скачался не полностью (${received} из ${expectedSize} байт).`);
+    throw new Error(t("Файл скачался не полностью ({received} из {expectedSize} байт).", { received: received, expectedSize: expectedSize }));
   }
   await fsp.rename(tmp, dest);
 }
@@ -79,7 +80,7 @@ export function extract(zipPath: string, destDir: string, onProgress: Progress):
   const root = path.resolve(destDir);
   return new Promise((resolve, reject) => {
     yauzl.open(zipPath, { lazyEntries: true }, (err, zip) => {
-      if (err || !zip) return reject(err ?? new Error("Не удалось открыть архив"));
+      if (err || !zip) return reject(err ?? new Error(t("Не удалось открыть архив")));
       let done = 0;
       const total = zip.entryCount || 1;
       const fail = (e: unknown) => {
@@ -90,17 +91,17 @@ export function extract(zipPath: string, destDir: string, onProgress: Progress):
       zip.on("end", () => resolve());
       zip.on("entry", (entry: yauzl.Entry) => {
         done++;
-        if (done % 50 === 0) onProgress("Распаковка", done / total);
+        if (done % 50 === 0) onProgress(t("Распаковка"), done / total);
         const target = path.resolve(root, entry.fileName);
         if (target !== root && !target.startsWith(root + path.sep)) {
-          return fail(new Error(`Подозрительный путь в архиве: ${entry.fileName}`));
+          return fail(new Error(t("Подозрительный путь в архиве: {fileName}", { fileName: entry.fileName })));
         }
         if (entry.fileName.endsWith("/")) {
           fsp.mkdir(target, { recursive: true }).then(() => zip.readEntry(), fail);
           return;
         }
         zip.openReadStream(entry, (e2, stream) => {
-          if (e2 || !stream) return fail(e2 ?? new Error("Ошибка чтения архива"));
+          if (e2 || !stream) return fail(e2 ?? new Error(t("Ошибка чтения архива")));
           fsp
             .mkdir(path.dirname(target), { recursive: true })
             .then(() => pipeline(stream, fs.createWriteStream(target)))
@@ -169,12 +170,12 @@ export async function installFile(opts: {
   await fsp.rm(staging, { recursive: true, force: true });
   try {
     await download(url, zip, file.fileLength, onProgress);
-    onProgress("Распаковка", 0);
+    onProgress(t("Распаковка"), 0);
     await extract(zip, staging, onProgress);
     const { root, folders } = await findAddonRoot(staging);
-    if (folders.length === 0) throw new Error("В архиве нет папок аддона (.toc не найден).");
+    if (folders.length === 0) throw new Error(t("В архиве нет папок аддона (.toc не найден)."));
 
-    onProgress("Установка", null);
+    onProgress(t("Установка"), null);
     await fsp.mkdir(target, { recursive: true });
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     const backupDir = path.join(work, "backups", addonKey.replace(/[^\w.-]+/g, "_"), `${previous?.fileId ?? "manual"}-${stamp}`);

@@ -1,5 +1,6 @@
 import type { AddonRef, AppState } from "../shared/types";
 import type { View } from "./Sidebar";
+import { locale, t } from "../shared/i18n";
 
 export const api = window.api;
 
@@ -24,22 +25,22 @@ export function cleanError(e: unknown): string {
 }
 
 export function formatSize(bytes: number): string {
-  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} ГБ`;
-  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} МБ`;
-  return `${Math.max(1, Math.round(bytes / 1024))} КБ`;
+  if (bytes >= 1024 ** 3) return t("{p0} ГБ", { p0: (bytes / 1024 ** 3).toFixed(1) });
+  if (bytes >= 1024 ** 2) return t("{p0} МБ", { p0: (bytes / 1024 ** 2).toFixed(0) });
+  return t("{p0} КБ", { p0: Math.max(1, Math.round(bytes / 1024)) });
 }
 
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+  return new Date(iso).toLocaleDateString(locale(), { day: "numeric", month: "short" });
 }
 
 export function formatAgo(iso: string | null | undefined): string {
-  if (!iso) return "никогда";
+  if (!iso) return t("никогда");
   const s = Math.round((Date.now() - Date.parse(iso)) / 1000);
-  if (s < 60) return "только что";
-  if (s < 3600) return `${Math.round(s / 60)} мин назад`;
-  if (s < 86400) return `${Math.round(s / 3600)} ч назад`;
+  if (s < 60) return t("только что");
+  if (s < 3600) return t("{p0} мин назад", { p0: Math.round(s / 60) });
+  if (s < 86400) return t("{p0} ч назад", { p0: Math.round(s / 3600) });
   return formatDate(iso);
 }
 
@@ -55,14 +56,6 @@ export function versionOf(name: string | undefined): string {
   const base = name.replace(/\.(zip|rar)$/i, "");
   const m = /[-_ ]v?(\d[\w.+-]*)$/i.exec(base);
   return m ? m[1] : base;
-}
-
-export function plural(n: number, one: string, few: string, many: string): string {
-  const m10 = n % 10;
-  const m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return one;
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
-  return many;
 }
 
 /** Stable hue from a string, for letter avatars. */

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { AppState } from "../../shared/types";
 import { IconCheck, IconRefresh } from "../icons";
 import { api, type Run } from "../util";
+import { t } from "../../shared/i18n";
 
 /** The app's own version and a button that asks GitHub for a newer one. */
 export function AppUpdateCheck({ state, run }: { state: AppState; run: Run }) {
@@ -18,18 +19,18 @@ export function AppUpdateCheck({ state, run }: { state: AppState; run: Run }) {
     <div className="app-update-check">
       <div className="row about-row">
         <span>
-          Программа: Forever Addons <b>{state.appVersion}</b>
+          {t("Программа: Forever Addons")} <b>{state.appVersion}</b>
         </span>
         <button onClick={check} disabled={checking}>
-          <IconRefresh size={16} className={checking ? "spin" : undefined} /> Проверить обновления
+          <IconRefresh size={16} className={checking ? "spin" : undefined} /> {t("Проверить обновления")}
         </button>
       </div>
       {checked && !checking && (
         state.appUpdate ? (
-          <span className="warn-badge">Есть версия {state.appUpdate.version}: нажми «Обновить и перезапустить» вверху.</span>
+          <span className="warn-badge">{t("Есть версия")} {state.appUpdate.version}{t(": нажми «Обновить и перезапустить» вверху.")}</span>
         ) : (
           <span className="ok-badge">
-            <IconCheck size={14} /> У тебя последняя версия.
+            <IconCheck size={14} /> {t("У тебя последняя версия.")}
           </span>
         )
       )}

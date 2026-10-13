@@ -1,5 +1,6 @@
 import type { ReleaseType, RemoteFile } from "../../shared/types";
 import { USER_AGENT, type FileQuery, type Provider, type ResolvedAddon } from "./types";
+import { t } from "../../shared/i18n";
 
 const API = "https://api.github.com";
 /** BigWigs packager flavor name for WoW Forever in release.json. */
@@ -52,7 +53,7 @@ export class GitHub implements Provider {
   private async repoInfo(fullName: string): Promise<ResolvedAddon> {
     const repo = await this.api<{ full_name: string; name: string; html_url: string; owner: { avatar_url: string } }>(`/repos/${fullName}`).catch(
       (e: Error) => {
-        throw new Error(e.message.includes("404") ? `Репозиторий ${fullName} не найден на GitHub.` : e.message);
+        throw new Error(e.message.includes("404") ? t("Репозиторий {fullName} не найден на GitHub.", { fullName: fullName }) : e.message);
       },
     );
     return { id: repo.full_name, name: repo.name, url: repo.html_url, iconUrl: repo.owner.avatar_url, categories: [] };
@@ -125,7 +126,7 @@ export class GitHub implements Provider {
       if ((res.status === 403 || res.status === 429) && res.headers.get("x-ratelimit-remaining") === "0") {
         const reset = Number(res.headers.get("x-ratelimit-reset")) * 1000;
         const mins = Math.max(1, Math.ceil((reset - Date.now()) / 60000));
-        throw new Error(`Лимит запросов к GitHub исчерпан, сбросится через ~${mins} мин. GitHub-токен в настройках поднимет лимит.`);
+        throw new Error(t("Лимит запросов к GitHub исчерпан, сбросится через ~{mins} мин. GitHub-токен в настройках поднимет лимит.", { mins: mins }));
       }
       throw new Error(`GitHub: HTTP ${res.status}`);
     }

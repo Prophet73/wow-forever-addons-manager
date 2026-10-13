@@ -1,6 +1,7 @@
 import type { WtfBackup, WtfState } from "../../shared/types";
 import { IconUndo } from "../icons";
 import { api, cleanError, formatAgo } from "../util";
+import { t } from "../../shared/i18n";
 
 /** Backups taken before each copy or timer preset, each restorable in one click. */
 export function WtfBackups(props: {
@@ -9,13 +10,13 @@ export function WtfBackups(props: {
   onState: (s: WtfState) => void;
   onMessage: (m: { kind: "error" | "info"; text: string }) => void;
 }) {
-  if (props.backups.length === 0) return <p className="muted">Бэкапов пока нет. Они появляются перед каждым копированием.</p>;
+  if (props.backups.length === 0) return <p className="muted">{t("Бэкапов пока нет. Они появляются перед каждым копированием.")}</p>;
 
   const restore = async (b: WtfBackup) => {
-    if (!confirm("Вернуть файлы персонажей как было до этого изменения?")) return;
+    if (!confirm(t("Вернуть файлы персонажей как было до этого изменения?"))) return;
     try {
       props.onState(await api.wtfRestore(b.id));
-      props.onMessage({ kind: "info", text: "Восстановлено." });
+      props.onMessage({ kind: "info", text: t("Восстановлено.") });
     } catch (e) {
       props.onMessage({ kind: "error", text: cleanError(e) });
     }
@@ -28,10 +29,10 @@ export function WtfBackups(props: {
           <div className="backup" key={b.id}>
             <span>{formatAgo(b.createdAt)}</span>
             <span className="muted small">
-              {b.targets.map((t) => t.split("/")[2].split("-")[0]).join(", ")} · {b.fileCount} файлов
+              {b.targets.map((t) => t.split("/")[2].split("-")[0]).join(", ")} · {b.fileCount} {t("файлов")}
             </span>
             <button className="sm" disabled={props.gameRunning} onClick={() => void restore(b)}>
-              <IconUndo size={14} /> Вернуть
+              <IconUndo size={14} /> {t("Вернуть")}
             </button>
           </div>
         ))}

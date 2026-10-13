@@ -1,3 +1,5 @@
+import { language, locale } from "../shared/i18n";
+
 /** Russian labels for CurseForge's WoW addon categories (top level and the common subcategories). */
 const CATEGORY_RU: Record<string, string> = {
   Achievements: "Достижения",
@@ -45,9 +47,9 @@ const CATEGORY_RU: Record<string, string> = {
 };
 
 export function categoryLabel(name: string): string {
-  return CATEGORY_RU[name] ?? name;
+  return language() === "ru" ? (CATEGORY_RU[name] ?? name) : name;
 }
 
 export function byCategoryLabel(a: string, b: string): number {
-  return categoryLabel(a).localeCompare(categoryLabel(b), "ru");
+  return categoryLabel(a).localeCompare(categoryLabel(b), locale());
 }

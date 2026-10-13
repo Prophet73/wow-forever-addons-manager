@@ -3,7 +3,8 @@ import { addonKey } from "../../shared/addon";
 import type { ApplyPackResult, Pack, PackAddon, TrackedAddon, WtfCharacter } from "../../shared/types";
 import { IconCopy, IconDownload, IconEdit, IconFolder, IconPack, IconPlay, IconPlus, IconShare, IconTrash } from "../icons";
 import { Avatar, Banner, Checkbox, Empty, Modal, PageHeader } from "../ui";
-import { api, cleanError, formatDate, plural, type ViewProps } from "../util";
+import { api, cleanError, formatDate, type ViewProps } from "../util";
+import { plural, t } from "../../shared/i18n";
 
 function toPackAddon(a: TrackedAddon): PackAddon {
   return { provider: a.provider, id: a.id, name: a.name };
@@ -24,26 +25,26 @@ export function PacksView({ state, run }: ViewProps) {
   return (
     <div className="page">
       <PageHeader
-        title="Сборки"
-        subtitle="Наборы аддонов: поставить всё одной кнопкой или поделиться с другом кодом или файлом с настройками"
+        title={t("Сборки")}
+        subtitle={t("Наборы аддонов: поставить всё одной кнопкой или поделиться с другом кодом или файлом с настройками")}
         actions={
           <>
             <button onClick={() => run(async () => (await api.importPackFile()) ?? undefined)}>
-              <IconFolder size={16} /> Открыть файл
+              <IconFolder size={16} /> {t("Открыть файл")}
             </button>
             <button onClick={() => setImporting(true)}>
-              <IconCopy size={16} /> Вставить код
+              <IconCopy size={16} /> {t("Вставить код")}
             </button>
             <button className="primary" onClick={() => setEditing(fromInstalled())} disabled={!state.addons.length}>
-              <IconPlus size={16} /> Сборка из установленных
+              <IconPlus size={16} /> {t("Сборка из установленных")}
             </button>
           </>
         }
       />
 
       {state.packs.length === 0 ? (
-        <Empty icon={<IconPack size={40} />} title="Сборок пока нет">
-          <p>Сохрани текущий набор аддонов как сборку или вставь код сборки от друга.</p>
+        <Empty icon={<IconPack size={40} />} title={t("Сборок пока нет")}>
+          <p>{t("Сохрани текущий набор аддонов как сборку или вставь код сборки от друга.")}</p>
         </Empty>
       ) : (
         <div className="pack-grid">
@@ -58,14 +59,14 @@ export function PacksView({ state, run }: ViewProps) {
                   <div>
                     <div className="pack-name">{p.name}</div>
                     <div className="muted small">
-                      {p.addons.length} {plural(p.addons.length, "аддон", "аддона", "аддонов")} · стоит {installed} из {p.addons.length} · {formatDate(p.updatedAt)}
+                      {p.addons.length} {plural(p.addons.length, "аддон", "аддона", "аддонов")} {t("· стоит")} {installed} {t("из")} {p.addons.length} · {formatDate(p.updatedAt)}
                     </div>
                   </div>
                 </div>
                 {p.description && <div className="pack-desc">{p.description}</div>}
                 {p.settings && (
                   <div className="pack-settings small">
-                    + настройки интерфейса с {p.settings.from.split("-")[0]} ({p.settings.files} {plural(p.settings.files, "файл", "файла", "файлов")})
+                    {t("+ настройки интерфейса с")} {p.settings.from.split("-")[0]} ({p.settings.files} {plural(p.settings.files, "файл", "файла", "файлов")})
                   </div>
                 )}
                 <div className="pack-addons">
@@ -78,7 +79,7 @@ export function PacksView({ state, run }: ViewProps) {
                 </div>
                 <div className="pack-actions">
                   <button className="primary sm" onClick={() => setApplying(p)} disabled={state.gameRunning}>
-                    <IconPlay size={14} /> Применить
+                    <IconPlay size={14} /> {t("Применить")}
                   </button>
                   <button
                     className="sm"
@@ -90,15 +91,15 @@ export function PacksView({ state, run }: ViewProps) {
                       }
                     }}
                   >
-                    <IconShare size={14} /> Поделиться
+                    <IconShare size={14} /> {t("Поделиться")}
                   </button>
-                  <button className="sm icon-only" title="Изменить" onClick={() => setEditing(p)}>
+                  <button className="sm icon-only" title={t("Изменить")} onClick={() => setEditing(p)}>
                     <IconEdit size={14} />
                   </button>
                   <button
                     className="sm icon-only danger"
-                    title="Удалить сборку"
-                    onClick={() => confirm(`Удалить сборку «${p.name}»? Аддоны останутся установленными.`) && run(() => api.deletePack(p.id))}
+                    title={t("Удалить сборку")}
+                    onClick={() => confirm(t("Удалить сборку «{name}»? Аддоны останутся установленными.", { name: p.name })) && run(() => api.deletePack(p.id))}
                   >
                     <IconTrash size={14} />
                   </button>
@@ -144,36 +145,36 @@ function PackEditor(props: { initial: Partial<Pack>; state: ViewProps["state"]; 
 
   return (
     <Modal
-      title={initial.id ? "Изменить сборку" : "Новая сборка"}
+      title={initial.id ? t("Изменить сборку") : t("Новая сборка")}
       onClose={props.onClose}
       wide
       footer={
         <>
-          <button onClick={props.onClose}>Отмена</button>
+          <button onClick={props.onClose}>{t("Отмена")}</button>
           <button className="primary" onClick={save} disabled={!name.trim() || selected.size === 0}>
-            Сохранить
+            {t("Сохранить")}
           </button>
         </>
       }
     >
       <label>
-        Название
-        <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Например: Хил-друид, рейд" />
+        {t("Название")}
+        <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t("Например: Хил-друид, рейд")} />
       </label>
       <label>
-        Описание <span className="muted">(необязательно)</span>
-        <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Для чего сборка, что в ней важного" />
+        {t("Описание")} <span className="muted">{t("(необязательно)")}</span>
+        <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("Для чего сборка, что в ней важного")} />
       </label>
       <div className="label-row">
         <span>
-          Аддоны <span className="muted">({selected.size})</span>
+          {t("Аддоны")} <span className="muted">({selected.size})</span>
         </span>
         <span className="link-group">
           <button className="link" onClick={() => setSelected(new Set(pool.map(addonKey)))}>
-            все
+            {t("все")}
           </button>
           <button className="link" onClick={() => setSelected(new Set())}>
-            никого
+            {t("никого")}
           </button>
         </span>
       </div>
@@ -195,22 +196,22 @@ function ImportDialog(props: { run: ViewProps["run"]; onClose: () => void }) {
   };
   return (
     <Modal
-      title="Вставить код сборки"
+      title={t("Вставить код сборки")}
       onClose={props.onClose}
       footer={
         <>
-          <button onClick={props.onClose}>Отмена</button>
+          <button onClick={props.onClose}>{t("Отмена")}</button>
           <button className="primary" onClick={submit} disabled={!code.trim()}>
-            Добавить сборку
+            {t("Добавить сборку")}
           </button>
         </>
       }
     >
       <label>
-        Код от друга
+        {t("Код от друга")}
         <textarea autoFocus rows={4} value={code} onChange={(e) => setCode(e.target.value)} placeholder="FA1.…" className="mono" />
       </label>
-      <p className="muted small">Сборка появится в списке. Потом нажми «Применить», чтобы поставить аддоны.</p>
+      <p className="muted small">{t("Сборка появится в списке. Потом нажми «Применить», чтобы поставить аддоны.")}</p>
     </Modal>
   );
 }
@@ -245,18 +246,18 @@ function ShareDialog(props: { pack: Pack; code: string; onClose: () => void }) {
 
   const saveFile = async () => {
     try {
-      if (await api.exportPackFile(props.pack.id, from)) setSaved("Файл сохранён. Отправь его другу, он откроет его в Forever Addons: Сборки → «Открыть файл».");
+      if (await api.exportPackFile(props.pack.id, from)) setSaved(t("Файл сохранён. Отправь его другу, он откроет его в Forever Addons: Сборки → «Открыть файл»."));
     } catch (e) {
       setSaved(cleanError(e));
     }
   };
   return (
     <Modal
-      title={`Поделиться «${props.pack.name}»`}
+      title={t("Поделиться «{name}»", { name: props.pack.name })}
       onClose={props.onClose}
       footer={
         <>
-          <button onClick={props.onClose}>Закрыть</button>
+          <button onClick={props.onClose}>{t("Закрыть")}</button>
           <button
             className="primary"
             onClick={async () => {
@@ -268,27 +269,27 @@ function ShareDialog(props: { pack: Pack; code: string; onClose: () => void }) {
               }
             }}
           >
-            <IconCopy size={16} /> {copied ? "Скопировано" : "Скопировать код"}
+            <IconCopy size={16} /> {copied ? t("Скопировано") : t("Скопировать код")}
           </button>
         </>
       }
     >
-      <h3 className="share-title">Только аддоны: код</h3>
-      <p>Отправь этот код другу. В Forever Addons: Сборки → «Вставить код».</p>
+      <h3 className="share-title">{t("Только аддоны: код")}</h3>
+      <p>{t("Отправь этот код другу. В Forever Addons: Сборки → «Вставить код».")}</p>
       <textarea readOnly rows={4} value={props.code} className="mono" onFocus={(e) => e.currentTarget.select()} />
-      <h3 className="share-title">Аддоны и мой интерфейс: файл</h3>
+      <h3 className="share-title">{t("Аддоны и мой интерфейс: файл")}</h3>
       <p className="muted small">
-        Расположение окон, бинды, макросы, чат и настройки аддонов из сборки. Графика и звук не попадают, личная переписка тоже.
+        {t("Расположение окон, бинды, макросы, чат и настройки аддонов из сборки. Графика и звук не попадают, личная переписка тоже.")}
       </p>
       {characters.length > 0 ? (
         <div className="row">
           <CharacterSelect characters={characters} value={from} onChange={setCharId} />
           <button onClick={saveFile} disabled={!from}>
-            <IconDownload size={16} /> Сохранить файл…
+            <IconDownload size={16} /> {t("Сохранить файл…")}
           </button>
         </div>
       ) : (
-        <p className="muted small">Персонажей не найдено: зайди в игру хотя бы раз.</p>
+        <p className="muted small">{t("Персонажей не найдено: зайди в игру хотя бы раз.")}</p>
       )}
       {saved && <Banner kind="info">{saved}</Banner>}
     </Modal>
@@ -314,7 +315,7 @@ function ApplyDialog(props: { pack: Pack; state: ViewProps["state"]; onClose: ()
   const apply = async () => {
     setErr(null);
     const name = characters.find((c) => c.id === target)?.name;
-    if (settingsOn && !confirm(`Заменить интерфейс ${name} настройками из сборки? Текущие файлы сохранятся в бэкап (Персонажи → Бэкапы).`)) return;
+    if (settingsOn && !confirm(t("Заменить интерфейс {name} настройками из сборки? Текущие файлы сохранятся в бэкап (Персонажи → Бэкапы).", { name: name ?? "" }))) return;
     setBusy(true);
     try {
       setResult(await api.applyPack(pack.id, removeOthers, settingsOn ? target : null));
@@ -326,22 +327,22 @@ function ApplyDialog(props: { pack: Pack; state: ViewProps["state"]; onClose: ()
 
   return (
     <Modal
-      title={`Применить «${pack.name}»`}
+      title={t("Применить «{name}»", { name: pack.name })}
       onClose={props.onClose}
       footer={
         result ? (
           <button className="primary" onClick={props.onClose}>
-            Готово
+            {t("Готово")}
           </button>
         ) : (
           <>
-            <button onClick={props.onClose}>Отмена</button>
+            <button onClick={props.onClose}>{t("Отмена")}</button>
             <button
               className="primary"
               onClick={apply}
               disabled={busy || (settingsOn && state.gameRunning) || (missing.length === 0 && !settingsOn && !(removeOthers && extra.length))}
             >
-              {busy ? "Запускаю…" : "Применить"}
+              {busy ? t("Запускаю…") : t("Применить")}
             </button>
           </>
         )
@@ -350,23 +351,23 @@ function ApplyDialog(props: { pack: Pack; state: ViewProps["state"]; onClose: ()
       {result ? (
         <>
           <p>
-            Поставлено в очередь: <b>{result.queued}</b>, уже стояло: <b>{result.alreadyInstalled}</b>
+            {t("Поставлено в очередь:")} <b>{result.queued}</b>{t(", уже стояло:")} <b>{result.alreadyInstalled}</b>
             {result.removed > 0 && (
               <>
-                , удаляется: <b>{result.removed}</b>
+                {t(", удаляется:")} <b>{result.removed}</b>
               </>
             )}
-            . Прогресс видно в «Загрузках».
+            {t(". Прогресс видно в «Загрузках».")}
           </p>
-          {result.settingsFiles > 0 && <p>Настройки интерфейса записаны ({result.settingsFiles} файлов). Можно заходить в игру.</p>}
+          {result.settingsFiles > 0 && <p>{t("Настройки интерфейса записаны (")}{result.settingsFiles} {t("файлов). Можно заходить в игру.")}</p>}
           {result.failed.length > 0 && <Banner kind="warn">{result.failed.join("\n")}</Banner>}
         </>
       ) : (
         <>
           <p>
             {missing.length
-              ? `Будет установлено: ${missing.length} ${plural(missing.length, "аддон", "аддона", "аддонов")}.`
-              : "Все аддоны из сборки уже стоят."}
+              ? t("Будет установлено: {missing} {p1}.", { missing: missing.length, p1: plural(missing.length, "аддон", "аддона", "аддонов") })
+              : t("Все аддоны из сборки уже стоят.")}
           </p>
           {missing.length > 0 && (
             <div className="pack-addons">
@@ -379,22 +380,22 @@ function ApplyDialog(props: { pack: Pack; state: ViewProps["state"]; onClose: ()
           )}
           {extra.length > 0 && (
             <Checkbox checked={removeOthers} onChange={setRemoveOthers}>
-              Удалить аддоны не из сборки ({extra.length}): {extra.map((a) => a.name).join(", ")}
+              {t("Удалить аддоны не из сборки (")}{extra.length}): {extra.map((a) => a.name).join(", ")}
             </Checkbox>
           )}
           {pack.settings && (
             <div className="apply-settings">
               <Checkbox checked={withSettings} onChange={setWithSettings}>
-                Настройки интерфейса с {pack.settings.from.split("-")[0]} на персонажа:
+                {t("Настройки интерфейса с")} {pack.settings.from.split("-")[0]} {t("на персонажа:")}
               </Checkbox>
               {characters.length > 0 ? (
                 <CharacterSelect characters={characters} value={target} onChange={setCharId} />
               ) : (
-                <span className="muted small">персонажей нет: зайди в игру хотя бы раз</span>
+                <span className="muted small">{t("персонажей нет: зайди в игру хотя бы раз")}</span>
               )}
             </div>
           )}
-          {settingsOn && state.gameRunning && <Banner kind="warn">Закрой игру: она перезапишет настройки при выходе.</Banner>}
+          {settingsOn && state.gameRunning && <Banner kind="warn">{t("Закрой игру: она перезапишет настройки при выходе.")}</Banner>}
           {err && <Banner kind="error">{err}</Banner>}
         </>
       )}

@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS: Settings = {
   maxReleaseType: 1,
   backupsToKeep: 2,
   checkOnStartup: true,
+  language: "",
 };
 
 interface StoreData {

@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import type { ReleaseType } from "../../shared/types";
 import { IconCheck, IconFolder } from "../icons";
 import { KeyGuide } from "../KeyGuide";
+import { LanguagePicker } from "../LanguagePicker";
 import { Checkbox, PageHeader } from "../ui";
 import { api, type ViewProps } from "../util";
 import { AppUpdateCheck } from "./AppUpdateCheck";
 import { RELEASE_OPTIONS } from "./Library";
+import { t } from "../../shared/i18n";
 
 export function SettingsView({ state, run }: ViewProps) {
   const s = state.settings;
@@ -38,29 +40,35 @@ export function SettingsView({ state, run }: ViewProps) {
   };
 
   const keyBadge =
-    state.keyStatus === "ok" ? <span className="ok-badge">ключ работает</span> : state.keyStatus === "rejected" ? <span className="warn-badge">ключ не принят</span> : null;
+    state.keyStatus === "ok" ? <span className="ok-badge">{t("ключ работает")}</span> : state.keyStatus === "rejected" ? <span className="warn-badge">{t("ключ не принят")}</span> : null;
 
   return (
     <div className="page narrow">
       <PageHeader
-        title="Настройки"
+        title={t("Настройки")}
         actions={
           <button className="primary" onClick={save} disabled={!dirty}>
             {saved ? (
               <>
-                <IconCheck size={16} /> Сохранено
+                <IconCheck size={16} /> {t("Сохранено")}
               </>
             ) : (
-              "Сохранить"
+              t("Сохранить")
             )}
           </button>
         }
       />
 
       <section className="card form">
-        <h3>Игра</h3>
+        <h3>
+          Язык / Language <LanguagePicker value={s.language || "ru"} run={run} />
+        </h3>
+      </section>
+
+      <section className="card form">
+        <h3>{t("Игра")}</h3>
         <label>
-          Папка клиента WoW Forever
+          {t("Папка клиента WoW Forever")}
           <div className="row">
             <input value={gamePath} onChange={(e) => setGamePath(e.target.value)} placeholder="D:\Games\World of Warcraft\_classic_beta_" />
             <button
@@ -71,10 +79,10 @@ export function SettingsView({ state, run }: ViewProps) {
                 })
               }
             >
-              <IconFolder size={16} /> Обзор
+              <IconFolder size={16} /> {t("Обзор")}
             </button>
           </div>
-          <span className="hint">Папка, где лежит WowB.exe. Можно выбрать и папку World of Warcraft: нужная найдётся внутри.</span>
+          <span className="hint">{t("Папка, где лежит WowB.exe. Можно выбрать и папку World of Warcraft: нужная найдётся внутри.")}</span>
         </label>
       </section>
 
@@ -82,47 +90,46 @@ export function SettingsView({ state, run }: ViewProps) {
         <h3>CurseForge {keyBadge}</h3>
         {state.keyStatus !== "ok" && <KeyGuide />}
         <label>
-          API-ключ
+          {t("API-ключ")}
           <input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder="$2a$10$…" />
-          <span className="hint">Нужен для каталога и поиска. Без ключа обновления всё равно работают.</span>
+          <span className="hint">{t("Нужен для каталога и поиска. Без ключа обновления всё равно работают.")}</span>
         </label>
       </section>
 
       <section className="card form">
         <h3>GitHub</h3>
         <label>
-          Токен <span className="muted">(необязательно)</span>
+          {t("Токен")} <span className="muted">{t("(необязательно)")}</span>
           <input type="password" value={ghToken} onChange={(e) => setGhToken(e.target.value)} placeholder="github_pat_…" />
           <span className="hint">
-            Без токена GitHub даёт 60 запросов в час. Токен без каких-либо прав (только чтение публичных репозиториев) поднимает
-            лимит до 5000.{" "}
+            {t("Без токена GitHub даёт 60 запросов в час. Токен без каких-либо прав (только чтение публичных репозиториев) поднимает лимит до 5000.")}{" "}
             <a href="#" onClick={(e) => (e.preventDefault(), api.openExternal("https://github.com/settings/personal-access-tokens/new"))}>
-              Создать токен
+              {t("Создать токен")}
             </a>
           </span>
         </label>
       </section>
 
       <section className="card form">
-        <h3>Обновления</h3>
+        <h3>{t("Обновления")}</h3>
         <AppUpdateCheck state={state} run={run} />
         <label>
-          Какие версии ставить
+          {t("Какие версии ставить")}
           <select value={channel} onChange={(e) => setChannel(Number(e.target.value) as ReleaseType)}>
             {RELEASE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
-                {o.label}
+                {t(o.label)}
               </option>
             ))}
           </select>
-          <span className="hint">{RELEASE_OPTIONS.find((o) => o.value === channel)?.hint} Для отдельного аддона это можно поменять, нажав на него в списке.</span>
+          <span className="hint">{t(RELEASE_OPTIONS.find((o) => o.value === channel)?.hint ?? "")} {t("Для отдельного аддона это можно поменять, нажав на него в списке.")}</span>
         </label>
         <label>
-          Сколько старых версий хранить для отката
+          {t("Сколько старых версий хранить для отката")}
           <input type="number" min={0} max={10} value={backups} onChange={(e) => setBackups(Math.max(0, Math.min(10, Number(e.target.value) || 0)))} />
         </label>
         <Checkbox checked={checkOnStartup} onChange={setCheckOnStartup}>
-          Проверять обновления аддонов при запуске
+          {t("Проверять обновления аддонов при запуске")}
         </Checkbox>
       </section>
 

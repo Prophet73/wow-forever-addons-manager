@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { CLASS_COLORS, CLASS_LABELS } from "../../shared/classes";
+import { CLASS_COLORS, classLabel } from "../../shared/classes";
 import type { WtfCharacter, WtfGroup, WtfState } from "../../shared/types";
 import { IconArrowRight, IconCheck } from "../icons";
 import { Avatar } from "../ui";
-import { api, cleanError, formatAgo, plural } from "../util";
+import { api, cleanError, formatAgo } from "../util";
+import { plural, t } from "../../shared/i18n";
 
 const GROUPS: { id: WtfGroup; label: string; hint: string }[] = [
   { id: "layout", label: "Расположение", hint: "Режим редактирования, положение окон и рамок X-Perl" },
@@ -76,11 +77,11 @@ export function WtfCopy(props: {
   const copy = async () => {
     if (!source) return;
     const names = characters.filter((c) => to.has(c.id)).map((c) => splitName(c.name)[0]);
-    if (!confirm(`Скопировать настройки с ${splitName(source.name)[0]} на ${names.join(", ")}? Их текущие файлы сохранятся в бэкап.`)) return;
+    if (!confirm(t("Скопировать настройки с {p0} на {p1}? Их текущие файлы сохранятся в бэкап.", { p0: splitName(source.name)[0], p1: names.join(", ") }))) return;
     setBusy(true);
     try {
       props.onState(await api.wtfCopy({ from: source.id, to: [...to], ...selection }));
-      props.onMessage({ kind: "info", text: "Готово. Можно заходить в игру." });
+      props.onMessage({ kind: "info", text: t("Готово. Можно заходить в игру.") });
       setTo(new Set());
     } catch (e) {
       props.onMessage({ kind: "error", text: cleanError(e) });
@@ -95,12 +96,12 @@ export function WtfCopy(props: {
     <>
       <div className="step-hint">
         {!source ? (
-          <>Нажми на персонажа, <b>с которого</b> копировать.</>
+          <>{t("Нажми на персонажа,")} <b>{t("с которого")}</b> {t("копировать.")}</>
         ) : (
           <>
-            Теперь отметь, <b>на кого</b>. Нажми на источник ещё раз, чтобы выбрать другой.
+            {t("Теперь отметь,")} <b>{t("на кого")}</b>{t(". Нажми на источник ещё раз, чтобы выбрать другой.")}
             <button className="link" onClick={() => setTo(new Set(others.map((c) => c.id)))}>
-              отметить всех
+              {t("отметить всех")}
             </button>
           </>
         )}
@@ -117,7 +118,7 @@ export function WtfCopy(props: {
           <div className="chips">
             {PRESETS.map((p) => (
               <button key={p.id} className={`chip${preset === p.id ? " active" : ""}`} onClick={() => setPreset(p.id)}>
-                {p.label}
+                {t(p.label)}
               </button>
             ))}
           </div>
@@ -126,8 +127,8 @@ export function WtfCopy(props: {
           ) : (
             <p className="hint">
               {preset === "all"
-                ? `${GROUPS.filter((g) => source.has[g.id]).map((g) => g.label.toLowerCase()).join(", ")} и настройки ${source.savedVariables.length} ${plural(source.savedVariables.length, "аддона", "аддонов", "аддонов")}, сохранённые на персонажа.`
-                : "Где стоят окна и рамки. Настройки самих аддонов не трогаются."}
+                ? t("{p0} и настройки {savedVariables} {p2}, сохранённые на персонажа.", { p0: GROUPS.filter((g) => source.has[g.id]).map((g) => t(g.label).toLowerCase()).join(", "), savedVariables: source.savedVariables.length, p2: plural(source.savedVariables.length, "аддона", "аддонов", "аддонов") })
+                : t("Где стоят окна и рамки. Настройки самих аддонов не трогаются.")}
             </p>
           )}
         </section>
@@ -137,11 +138,11 @@ export function WtfCopy(props: {
         <div className="action-bar">
           <span className="action-summary">
             <b>{splitName(source.name)[0]}</b> <IconArrowRight size={14} />{" "}
-            {to.size === 0 ? <span className="muted">выбери, на кого</span> : characters.filter((c) => to.has(c.id)).map((c) => splitName(c.name)[0]).join(", ")}
+            {to.size === 0 ? <span className="muted">{t("выбери, на кого")}</span> : characters.filter((c) => to.has(c.id)).map((c) => splitName(c.name)[0]).join(", ")}
           </span>
-          {props.gameRunning && <span className="warn-text">закрой игру</span>}
+          {props.gameRunning && <span className="warn-text">{t("закрой игру")}</span>}
           <button className="primary" disabled={busy || to.size === 0 || empty || props.gameRunning} onClick={copy}>
-            {busy ? "Копирую…" : "Скопировать"}
+            {busy ? t("Копирую…") : t("Скопировать")}
           </button>
         </div>
       )}
@@ -160,14 +161,14 @@ function CharCard(props: { c: WtfCharacter; role: "source" | "target" | "candida
         <span className="char-card-name">{name}</span>
         <span className="muted small">{realm}</span>
         <span className="small" style={color ? { color } : undefined}>
-          {c.wowClass ? CLASS_LABELS[c.wowClass] : <span className="muted">класс неизвестен</span>}
+          {c.wowClass ? classLabel(c.wowClass) : <span className="muted">{t("класс неизвестен")}</span>}
           <span className="muted"> · {formatAgo(c.modified)}</span>
         </span>
       </span>
-      {role === "source" && <span className="char-card-badge">откуда</span>}
+      {role === "source" && <span className="char-card-badge">{t("откуда")}</span>}
       {role === "target" && (
         <span className="char-card-badge target">
-          <IconCheck size={12} /> куда
+          <IconCheck size={12} /> {t("куда")}
         </span>
       )}
     </button>
@@ -179,31 +180,31 @@ function CustomPicker(props: { source: WtfCharacter; value: Selection; onChange:
   const svs = source.savedVariables;
   return (
     <>
-      <div className="muted small picker-label">Файлы персонажа</div>
+      <div className="muted small picker-label">{t("Файлы персонажа")}</div>
       <div className="chips">
         {GROUPS.map((g) => (
           <button
             key={g.id}
             className={`chip${value.groups.includes(g.id) ? " active" : ""}`}
             disabled={!source.has[g.id]}
-            title={source.has[g.id] ? g.hint : "У персонажа нет"}
+            title={source.has[g.id] ? t(g.hint) : t("У персонажа нет")}
             onClick={() => onChange({ ...value, groups: toggledList(value.groups, g.id) })}
           >
-            {g.label}
+            {t(g.label)}
           </button>
         ))}
       </div>
       <div className="muted small picker-label">
-        Настройки аддонов на персонажа · {value.savedVariables.length} из {svs.length}
+        {t("Настройки аддонов на персонажа ·")} {value.savedVariables.length} {t("из")} {svs.length}
         <button className="link" onClick={() => onChange({ ...value, savedVariables: svs })}>
-          все
+          {t("все")}
         </button>
         <button className="link" onClick={() => onChange({ ...value, savedVariables: [] })}>
-          никого
+          {t("никого")}
         </button>
       </div>
       {svs.length === 0 ? (
-        <p className="hint">У этого персонажа нет своих настроек аддонов.</p>
+        <p className="hint">{t("У этого персонажа нет своих настроек аддонов.")}</p>
       ) : (
         <div className="chips">
           {svs.map((sv) => (
@@ -217,7 +218,7 @@ function CustomPicker(props: { source: WtfCharacter; value: Selection; onChange:
           ))}
         </div>
       )}
-      <p className="hint">Здесь только то, что аддоны сохранили отдельно на персонажа. Настройки на весь аккаунт и так общие.</p>
+      <p className="hint">{t("Здесь только то, что аддоны сохранили отдельно на персонажа. Настройки на весь аккаунт и так общие.")}</p>
     </>
   );
 }

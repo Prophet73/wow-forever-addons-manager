@@ -4,7 +4,8 @@ import { byCategoryLabel, categoryLabel } from "../categories";
 import { IconCheck, IconFlame, IconLibrary, IconRefresh, IconSearch, IconTrash, IconUndo, IconUpdate } from "../icons";
 import { hasUpdate, needsAction, PROVIDER_LABEL } from "../../shared/addon";
 import { Avatar, Empty, PageHeader } from "../ui";
-import { addonPage, api, formatAgo, formatDate, formatSize, plural, versionOf, type ViewProps } from "../util";
+import { addonPage, api, formatAgo, formatDate, formatSize, versionOf, type ViewProps } from "../util";
+import { plural, t } from "../../shared/i18n";
 
 export const RELEASE_OPTIONS: { value: ReleaseType; label: string; hint: string }[] = [
   { value: 1, label: "Только стабильные", hint: "Обычные релизы. Самый надёжный вариант." },
@@ -30,10 +31,10 @@ export function LibraryView(props: ViewProps & { mode: "installed" | "updates"; 
   const actions = (
     <>
       <button onClick={onCheck} disabled={checking || !state.addons.length}>
-        <IconRefresh size={16} className={checking ? "spin" : ""} /> {checking ? "Проверяю…" : "Проверить"}
+        <IconRefresh size={16} className={checking ? "spin" : ""} /> {checking ? t("Проверяю…") : t("Проверить")}
       </button>
       <button className="primary" onClick={() => run(() => api.updateAll())} disabled={!pending.length || state.gameRunning}>
-        <IconUpdate size={16} /> Обновить всё{pending.length ? ` (${pending.length})` : ""}
+        <IconUpdate size={16} /> {t("Обновить всё")}{pending.length ? ` (${pending.length})` : ""}
       </button>
     </>
   );
@@ -41,32 +42,32 @@ export function LibraryView(props: ViewProps & { mode: "installed" | "updates"; 
   return (
     <div className="page">
       <PageHeader
-        title={mode === "updates" ? "Обновления" : "Установленные"}
+        title={mode === "updates" ? t("Обновления") : t("Установленные")}
         subtitle={
           state.addons.length
-            ? `${state.addons.length} ${plural(state.addons.length, "аддон", "аддона", "аддонов")} · проверено ${formatAgo(lastChecked)}`
-            : "Здесь будут аддоны, которые ставит и обновляет менеджер"
+            ? t("{addons} {p1} · проверено {p2}", { addons: state.addons.length, p1: plural(state.addons.length, "аддон", "аддона", "аддонов"), p2: formatAgo(lastChecked) })
+            : t("Здесь будут аддоны, которые ставит и обновляет менеджер")
         }
         actions={actions}
       />
-      {state.gameRunning && <div className="banner warn">Игра запущена: установка и обновления подождут, пока не закроешь WoW.</div>}
+      {state.gameRunning && <div className="banner warn">{t("Игра запущена: установка и обновления подождут, пока не закроешь WoW.")}</div>}
 
       {scope.length > 0 && <FilterBar addons={scope} filter={filter} onChange={setFilter} />}
 
       {state.addons.length === 0 ? (
-        <Empty icon={<IconLibrary size={40} />} title="Пока ни одного аддона">
-          <p>Найди аддоны в каталоге или примени сборку.</p>
+        <Empty icon={<IconLibrary size={40} />} title={t("Пока ни одного аддона")}>
+          <p>{t("Найди аддоны в каталоге или примени сборку.")}</p>
           <button className="primary" onClick={() => setView("curseforge")}>
-            <IconFlame size={16} /> Открыть каталог CurseForge
+            <IconFlame size={16} /> {t("Открыть каталог CurseForge")}
           </button>
         </Empty>
       ) : list.length === 0 ? (
         scope.length === 0 ? (
-          <Empty icon={<IconCheck size={40} />} title="Всё свежее">
-            <p>Обновлений нет. Последняя проверка: {formatAgo(lastChecked)}.</p>
+          <Empty icon={<IconCheck size={40} />} title={t("Всё свежее")}>
+            <p>{t("Обновлений нет. Последняя проверка:")} {formatAgo(lastChecked)}.</p>
           </Empty>
         ) : (
-          <Empty icon={<IconSearch size={40} />} title="Ничего не найдено" />
+          <Empty icon={<IconSearch size={40} />} title={t("Ничего не найдено")} />
         )
       ) : (
         <div className="addon-list">
@@ -113,7 +114,7 @@ function FilterBar(props: { addons: TrackedAddon[]; filter: Filter; onChange: (f
     <div className="toolbar">
       <div className="search-box grow">
         <IconSearch size={16} />
-        <input value={filter.query} onChange={(e) => set({ query: e.target.value })} placeholder="Поиск по названию, папке или категории" />
+        <input value={filter.query} onChange={(e) => set({ query: e.target.value })} placeholder={t("Поиск по названию, папке или категории")} />
       </div>
       {categories.length > 0 && (
         <select
@@ -121,7 +122,7 @@ function FilterBar(props: { addons: TrackedAddon[]; filter: Filter; onChange: (f
           value={filter.category ?? ""}
           onChange={(e) => set({ category: e.target.value || null })}
         >
-          <option value="">Все типы · {addons.length}</option>
+          <option value="">{t("Все типы ·")} {addons.length}</option>
           {categories.map((c) => (
             <option key={c} value={c}>
               {categoryLabel(c)} · {count((a) => !!a.categories?.includes(c))}
@@ -135,7 +136,7 @@ function FilterBar(props: { addons: TrackedAddon[]; filter: Filter; onChange: (f
           value={filter.source ?? ""}
           onChange={(e) => set({ source: (e.target.value || null) as Filter["source"] })}
         >
-          <option value="">Все источники</option>
+          <option value="">{t("Все источники")}</option>
           {sources.map((s) => (
             <option key={s} value={s}>
               {PROVIDER_LABEL[s]} · {count((a) => a.provider === s)}
@@ -168,7 +169,7 @@ function AddonRow(props: {
           <div className="addon-name">
             {a.name}
             <span className={`src-badge ${a.provider}`}>{PROVIDER_LABEL[a.provider]}</span>
-            {channel > 1 && <span className="src-badge warn">{channel === 2 ? "бета" : "альфа"}</span>}
+            {channel > 1 && <span className="src-badge warn">{channel === 2 ? t("бета") : t("альфа")}</span>}
           </div>
           <div className="addon-meta">
             {a.installed ? (
@@ -183,7 +184,7 @@ function AddonRow(props: {
                 )}
               </>
             ) : (
-              <span className="muted">не установлен{a.latest ? ` · ${versionOf(a.latest.displayName)}` : ""}</span>
+              <span className="muted">{t("не установлен")}{a.latest ? ` · ${versionOf(a.latest.displayName)}` : ""}</span>
             )}
             {a.latest && <span className="muted">· {formatSize(a.latest.fileLength)}</span>}
           </div>
@@ -196,17 +197,17 @@ function AddonRow(props: {
               </span>
             </div>
           )}
-          {job?.state === "error" && <div className="err">Ошибка: {job.error}</div>}
+          {job?.state === "error" && <div className="err">{t("Ошибка:")} {job.error}</div>}
         </div>
         <div className="addon-actions" onClick={(e) => e.stopPropagation()}>
           {needsAction(a) && (
             <button className="primary sm" disabled={active || gameRunning} onClick={() => run(() => api.install(a.key))}>
-              {a.installed ? "Обновить" : "Установить"}
+              {a.installed ? t("Обновить") : t("Установить")}
             </button>
           )}
           {!needsAction(a) && !active && (
             <span className="ok-badge">
-              <IconCheck size={14} /> актуально
+              <IconCheck size={14} /> {t("актуально")}
             </span>
           )}
         </div>
@@ -216,12 +217,12 @@ function AddonRow(props: {
         <div className="addon-details">
           <div className="detail-grid">
             <div>
-              <div className="label">Папки в AddOns</div>
+              <div className="label">{t("Папки в AddOns")}</div>
               <div>{a.folders.length ? a.folders.join(", ") : "—"}</div>
             </div>
             <div>
-              <div className="label" title={RELEASE_OPTIONS.find((o) => o.value === channel)?.hint}>
-                Какие версии ставить
+              <div className="label" title={t(RELEASE_OPTIONS.find((o) => o.value === channel)?.hint ?? "")}>
+                {t("Какие версии ставить")}
               </div>
               <select
                 value={a.maxReleaseType ?? 0}
@@ -230,33 +231,33 @@ function AddonRow(props: {
                   run(() => api.setAddonChannel(a.key, v ? (v as ReleaseType) : null));
                 }}
               >
-                <option value={0}>Как в настройках ({RELEASE_OPTIONS.find((o) => o.value === defaultChannel)?.label.toLowerCase()})</option>
+                <option value={0}>{t("Как в настройках (")}{t(RELEASE_OPTIONS.find((o) => o.value === defaultChannel)?.label ?? "").toLowerCase()})</option>
                 {RELEASE_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
-                    {o.label}
+                    {t(o.label)}
                   </option>
                 ))}
               </select>
-              <div className="hint">{RELEASE_OPTIONS.find((o) => o.value === channel)?.hint}</div>
+              <div className="hint">{t(RELEASE_OPTIONS.find((o) => o.value === channel)?.hint ?? "")}</div>
             </div>
           </div>
           <div className="detail-actions">
             <button className="sm" onClick={() => api.openExternal(addonPage(a))}>
-              Страница на {PROVIDER_LABEL[a.provider]}
+              {t("Страница на")} {PROVIDER_LABEL[a.provider]}
             </button>
             {a.backups.length > 0 && (
               <button className="sm" disabled={active || gameRunning} onClick={() => run(() => api.rollback(a.key))}>
-                <IconUndo size={14} /> Откатить на {versionOf(a.backups[0].file.displayName)}
+                <IconUndo size={14} /> {t("Откатить на")} {versionOf(a.backups[0].file.displayName)}
               </button>
             )}
             <button
               className="sm danger"
               disabled={active}
               onClick={() => {
-                if (confirm(`Удалить «${a.name}» из игры?`)) run(() => api.remove(a.key));
+                if (confirm(t("Удалить «{name}» из игры?", { name: a.name }))) run(() => api.remove(a.key));
               }}
             >
-              <IconTrash size={14} /> Удалить
+              <IconTrash size={14} /> {t("Удалить")}
             </button>
           </div>
         </div>

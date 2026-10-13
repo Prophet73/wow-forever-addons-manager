@@ -3,6 +3,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { t } from "../shared/i18n";
 
 /** Relative to WTF\Account\<account>, with "/" separators as backups record it. */
 const FILE = "SavedVariables/XPerlForever.lua";
@@ -27,7 +28,7 @@ function blockEnd(lines: string[], start: number): number {
     if (lines[i].startsWith("}")) depth--;
     if (depth === 0) return i;
   }
-  throw new Error("Файл X-Perl повреждён.");
+  throw new Error(t("Файл X-Perl повреждён."));
 }
 
 /** Gives each target the source character's saved X-Perl positions, within the same realm table. */

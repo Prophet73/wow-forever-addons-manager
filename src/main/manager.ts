@@ -35,6 +35,7 @@ import { timerGroups } from "./timers/presets";
 import { listAddonFolders, readToc } from "./toc";
 import * as wtf from "./wtf";
 import { copyXPerlPositions, xperlPositionsFile } from "./xperlPositions";
+import { setLanguage, t } from "../shared/i18n";
 
 /** Owns the tracked-addon list and runs install/update jobs one at a time. */
 export class Manager {
@@ -114,10 +115,11 @@ export class Manager {
   async saveSettings(patch: Partial<Settings>): Promise<AppState> {
     if (patch.gamePath) {
       const found = await resolveGameFolder(patch.gamePath);
-      if (!found) throw new Error(`В «${patch.gamePath}» и рядом нет WowB.exe. Укажи папку, куда установлен WoW Forever.`);
+      if (!found) throw new Error(t("В «{gamePath}» и рядом нет WowB.exe. Укажи папку, куда установлен WoW Forever.", { gamePath: patch.gamePath }));
       patch = { ...patch, gamePath: found };
     }
     const keyChanged = patch.curseforgeApiKey !== undefined && patch.curseforgeApiKey !== this.settings.curseforgeApiKey;
+    if (patch.language) setLanguage(patch.language);
     this.store.updateSettings(patch);
     if (keyChanged) await this.cf.verifyKey();
     return this.snapshot();
@@ -130,7 +132,7 @@ export class Manager {
 
   private requireGamePath(): string {
     const p = this.settings.gamePath;
-    if (!p || !fs.existsSync(p)) throw new Error("Укажи папку игры в настройках.");
+    if (!p || !fs.existsSync(p)) throw new Error(t("Укажи папку игры в настройках."));
     return p;
   }
 
@@ -146,7 +148,7 @@ export class Manager {
       const found = await p.resolve(input);
       if (found) return this.track({ provider: p.id, id: found.id }, [], found);
     }
-    throw new Error("Не понял, что это. Вставь ссылку на CurseForge или GitHub, или Project ID с CurseForge.");
+    throw new Error(t("Не понял, что это. Вставь ссылку на CurseForge или GitHub, или Project ID с CurseForge."));
   }
 
   /** Starts managing a hand-installed addon; its folders get replaced by the latest build. */
@@ -161,7 +163,7 @@ export class Manager {
   /** Adds an addon to the list and queues its install. `known` is whatever the caller already has. */
   private async track(ref: AddonRef, folders: string[], known: Partial<ResolvedAddon> = {}): Promise<AppState> {
     const key = addonKey(ref);
-    if (this.store.getAddon(key)) throw new Error("Этот аддон уже в списке.");
+    if (this.store.getAddon(key)) throw new Error(t("Этот аддон уже в списке."));
     const provider = this.providers[ref.provider];
     let latest = await provider.latestFile(ref.id, this.query());
     // No build on the default channel (e.g. VuhDo ships only alphas for Forever): take the
@@ -171,7 +173,7 @@ export class Manager {
       latest = await provider.latestFile(ref.id, { ...this.query(), maxReleaseType: t as ReleaseType });
       if (latest) channel = t as ReleaseType;
     }
-    if (!latest) throw new Error("У этого аддона нет версии под WoW Forever.");
+    if (!latest) throw new Error(t("У этого аддона нет версии под WoW Forever."));
     const extra = known.iconUrl === undefined || known.categories === undefined ? await provider.info(ref.id) : null;
     this.store.upsertAddon({
       ...ref,
@@ -232,7 +234,7 @@ export class Manager {
 
   private enqueue(kind: JobKind, a: TrackedAddon, run: (job: Job) => Promise<void>): void {
     if (this.jobs.some((j) => j.key === a.key && (j.state === "queued" || j.state === "running"))) return;
-    const job: Job = { id: randomUUID(), kind, key: a.key, name: a.name, state: "queued", progress: null, stage: "В очереди" };
+    const job: Job = { id: randomUUID(), kind, key: a.key, name: a.name, state: "queued", progress: null, stage: t("В очереди") };
     this.jobs = [job, ...this.jobs].slice(0, 30);
     this.queue.push({ job, run });
     this.emit();
@@ -247,18 +249,18 @@ export class Manager {
       while ((next = this.queue.shift())) {
         const { job, run } = next;
         job.state = "running";
-        job.stage = "Запуск";
+        job.stage = t("Запуск");
         this.emit();
         try {
-          if (await isGameRunning(this.settings.gamePath)) throw new Error("Игра запущена. Закрой WoW и повтори.");
+          if (await isGameRunning(this.settings.gamePath)) throw new Error(t("Игра запущена. Закрой WoW и повтори."));
           await run(job);
           job.state = "done";
-          job.stage = "Готово";
+          job.stage = t("Готово");
           job.progress = 1;
         } catch (e) {
           job.state = "error";
           job.error = (e as Error).message;
-          job.stage = "Ошибка";
+          job.stage = t("Ошибка");
         }
         this.emit();
       }
@@ -274,10 +276,10 @@ export class Manager {
       const gamePath = this.requireGamePath();
       const cur = this.store.getAddon(key)!;
       const provider = this.providers[cur.provider];
-      job.stage = "Поиск версии";
+      job.stage = t("Поиск версии");
       this.emit();
       const latest = (await provider.latestFile(cur.id, this.query(cur))) ?? cur.latest;
-      if (!latest) throw new Error("Нет версии под WoW Forever.");
+      if (!latest) throw new Error(t("Нет версии под WoW Forever."));
       const intact = cur.folders.every((f) => fs.existsSync(path.join(addonsDir(gamePath), f)));
       if (cur.installed?.fileId === latest.fileId && intact) {
         this.store.upsertAddon({ ...cur, latest, lastChecked: new Date().toISOString() });
@@ -322,7 +324,7 @@ export class Manager {
       const gamePath = this.requireGamePath();
       const cur = this.store.getAddon(key)!;
       const [backup, ...rest] = cur.backups;
-      job.stage = "Откат";
+      job.stage = t("Откат");
       this.emit();
       const folders = await restoreBackup(gamePath, cur.folders, backup);
       this.store.upsertAddon({ ...cur, installed: backup.file, folders, backups: rest });
@@ -335,7 +337,7 @@ export class Manager {
     if (!a) return;
     this.enqueue("remove", a, async (job) => {
       const gamePath = this.requireGamePath();
-      job.stage = "Удаление";
+      job.stage = t("Удаление");
       this.emit();
       const cur = this.store.getAddon(key)!;
       await removeFolders(gamePath, cur.folders);
@@ -348,7 +350,7 @@ export class Manager {
 
   savePack(input: Pick<Pack, "name" | "description" | "addons"> & { id?: string }): AppState {
     const name = input.name.trim();
-    if (!name) throw new Error("Дай сборке название.");
+    if (!name) throw new Error(t("Дай сборке название."));
     const now = new Date().toISOString();
     const existing = input.id ? this.store.packs.find((p) => p.id === input.id) : undefined;
     this.store.upsertPack({
@@ -380,7 +382,7 @@ export class Manager {
    */
   async applyPack(id: string, removeOthers: boolean, charId: string | null): Promise<ApplyPackResult> {
     const pack = this.store.packs.find((p) => p.id === id);
-    if (!pack) throw new Error("Сборка не найдена.");
+    if (!pack) throw new Error(t("Сборка не найдена."));
     this.requireGamePath();
     const result: ApplyPackResult = { queued: 0, alreadyInstalled: 0, removed: 0, failed: [], settingsFiles: 0 };
     if (charId && pack.settings) {
@@ -416,7 +418,7 @@ export class Manager {
 
   exportPack(id: string): string {
     const pack = this.store.packs.find((p) => p.id === id);
-    if (!pack) throw new Error("Сборка не найдена.");
+    if (!pack) throw new Error(t("Сборка не найдена."));
     return encodePack(pack);
   }
 
@@ -427,7 +429,7 @@ export class Manager {
   /** Writes the pack plus `charId`'s settings for the pack's addons to a .fapack file. */
   exportPackFile(id: string, charId: string, file: string): void {
     const pack = this.store.packs.find((p) => p.id === id);
-    if (!pack) throw new Error("Сборка не найдена.");
+    if (!pack) throw new Error(t("Сборка не найдена."));
     const folders = pack.addons.flatMap((a) => this.store.getAddon(addonKey(a))?.folders ?? []);
     writePackFile(file, { ...pack, ...collectSettings(this.requireGamePath(), charId, folders) });
   }
@@ -457,7 +459,7 @@ export class Manager {
 
   private async requireGameClosed(): Promise<string> {
     const p = this.requireGamePath();
-    if (await isGameRunning(this.settings.gamePath)) throw new Error("Игра запущена. Закрой WoW: она перезапишет настройки при выходе.");
+    if (await isGameRunning(this.settings.gamePath)) throw new Error(t("Игра запущена. Закрой WoW: она перезапишет настройки при выходе."));
     return p;
   }
 
@@ -506,11 +508,11 @@ export class Manager {
   async applyTimerPreset(charId: string): Promise<WtfState> {
     const p = await this.requireGameClosed();
     const char = this.wtfState().characters.find((c) => c.id === charId);
-    if (!char) throw new Error("Такого персонажа нет.");
-    if (!char.wowClass) throw new Error("Сначала выбери класс персонажа.");
+    if (!char) throw new Error(t("Такого персонажа нет."));
+    if (!char.wowClass) throw new Error(t("Сначала выбери класс персонажа."));
     const rel = path.join("SavedVariables", `${NEEDTOKNOW_FILE}.lua`);
     const file = path.join(wtf.charDir(p, charId), rel);
-    if (!fs.existsSync(file)) throw new Error("У персонажа ещё нет настроек NeedToKnow: зайди им в игру с включённым NeedToKnow.");
+    if (!fs.existsSync(file)) throw new Error(t("У персонажа ещё нет настроек NeedToKnow: зайди им в игру с включённым NeedToKnow."));
     const updated = applyTimerGroups(fs.readFileSync(file, "utf8"), timerGroups(char.wowClass));
     await wtf.backupBeforeWrite(p, [charId], [rel]);
     fs.writeFileSync(file, updated, "utf8");

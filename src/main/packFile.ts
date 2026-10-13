@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import zlib from "node:zlib";
 import { decodePack, encodePack, type DecodedPack } from "./packs";
+import { t } from "../shared/i18n";
 
 const FORMAT = "forever-addons-pack";
 const VERSION = 1;
@@ -46,16 +47,16 @@ export function readPackFile(file: string): PackFileContents {
   try {
     payload = JSON.parse(zlib.gunzipSync(fs.readFileSync(file), { maxOutputLength: MAX_UNPACKED }).toString("utf8"));
   } catch {
-    throw new Error("Это не файл сборки Forever Addons или он повреждён.");
+    throw new Error(t("Это не файл сборки Forever Addons или он повреждён."));
   }
-  if (payload.format !== FORMAT) throw new Error("Это не файл сборки Forever Addons.");
-  if (payload.v !== VERSION) throw new Error("Файл сборки из более новой версии Forever Addons. Обнови программу.");
+  if (payload.format !== FORMAT) throw new Error(t("Это не файл сборки Forever Addons."));
+  if (payload.v !== VERSION) throw new Error(t("Файл сборки из более новой версии Forever Addons. Обнови программу."));
   const files: PackFiles = {};
   for (const [p, text] of Object.entries(payload.files ?? {})) {
-    if (typeof text !== "string" || !(CHARACTER_FILE.test(p) || ACCOUNT_FILE.test(p))) throw new Error(`В файле сборки лишний файл: ${p}`);
+    if (typeof text !== "string" || !(CHARACTER_FILE.test(p) || ACCOUNT_FILE.test(p))) throw new Error(t("В файле сборки лишний файл: {p}", { p: p }));
     files[p] = text;
   }
   const from = String(payload.from ?? "");
-  if (!/^[^\\/:]+$/.test(from)) throw new Error("Файл сборки повреждён.");
+  if (!/^[^\\/:]+$/.test(from)) throw new Error(t("Файл сборки повреждён."));
   return { ...decodePack(String(payload.code ?? "")), from, files };
 }

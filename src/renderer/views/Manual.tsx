@@ -1,6 +1,7 @@
 import { IconCheck, IconFolder } from "../icons";
 import { Avatar, Empty, PageHeader } from "../ui";
 import { api, type ViewProps } from "../util";
+import { t } from "../../shared/i18n";
 
 export function ManualView({ state, run }: ViewProps) {
   const groups = new Map<number, typeof state.untracked>();
@@ -13,26 +14,25 @@ export function ManualView({ state, run }: ViewProps) {
   return (
     <div className="page">
       <PageHeader
-        title="Установлены вручную"
-        subtitle="Папки в Interface\AddOns, которые менеджер не отслеживает"
+        title={t("Установлены вручную")}
+        subtitle={t("Папки в Interface\\AddOns, которые менеджер не отслеживает")}
         actions={
           <button onClick={() => api.openAddonsFolder()} disabled={!state.settings.gamePath}>
-            <IconFolder size={16} /> Открыть AddOns
+            <IconFolder size={16} /> {t("Открыть AddOns")}
           </button>
         }
       />
       {state.untracked.length === 0 ? (
-        <Empty icon={<IconCheck size={40} />} title="Всё под контролем">
-          <p>Все аддоны в папке игры управляются менеджером.</p>
+        <Empty icon={<IconCheck size={40} />} title={t("Всё под контролем")}>
+          <p>{t("Все аддоны в папке игры управляются менеджером.")}</p>
         </Empty>
       ) : (
         <>
           {groups.size > 0 && (
             <section className="card">
-              <h3>Можно взять под управление</h3>
+              <h3>{t("Можно взять под управление")}</h3>
               <p className="muted small">
-                У этих аддонов есть CurseForge ID. Менеджер поставит свежую версию под Forever вместо ручной и дальше будет
-                её обновлять.
+                {t("У этих аддонов есть CurseForge ID. Менеджер поставит свежую версию под Forever вместо ручной и дальше будет её обновлять.")}
               </p>
               <div className="addon-list compact">
                 {[...groups.entries()].map(([id, folders]) => (
@@ -48,7 +48,7 @@ export function ManualView({ state, run }: ViewProps) {
                       </div>
                       <div className="addon-actions">
                         <button className="primary sm" onClick={() => run(() => api.trackUntracked(id))}>
-                          Управлять
+                          {t("Управлять")}
                         </button>
                       </div>
                     </div>
@@ -59,8 +59,8 @@ export function ManualView({ state, run }: ViewProps) {
           )}
           {plain.length > 0 && (
             <section className="card">
-              <h3>Без источника</h3>
-              <p className="muted small">У этих папок нет CurseForge ID в .toc. Найди их в каталоге и поставь оттуда, тогда они начнут обновляться.</p>
+              <h3>{t("Без источника")}</h3>
+              <p className="muted small">{t("У этих папок нет CurseForge ID в .toc. Найди их в каталоге и поставь оттуда, тогда они начнут обновляться.")}</p>
               <ul className="folders">
                 {plain.map((u) => (
                   <li key={u.folder}>

@@ -1,5 +1,7 @@
 // Types shared between the main process and the renderer.
 
+import type { Language } from "./i18n";
+
 import type { WowClass } from "./classes";
 
 /** 1 = release, 2 = beta, 3 = alpha (CurseForge numbering). GitHub pre-releases count as beta. */
@@ -28,6 +30,8 @@ export interface Settings {
   backupsToKeep: number;
   /** Check for updates when the app starts. */
   checkOnStartup: boolean;
+  /** Interface language; empty until the first start picks one from the system language. */
+  language: Language | "";
 }
 
 export interface RemoteFile {

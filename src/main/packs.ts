@@ -1,5 +1,6 @@
 import { addonKey } from "../shared/addon";
 import type { PackAddon, ProviderId } from "../shared/types";
+import { t } from "../shared/i18n";
 
 /** Share codes look like "FA1.<base64url JSON>". The number is the code format, not the payload version. */
 const PREFIX = "FA1.";
@@ -30,14 +31,14 @@ export function encodePack(pack: DecodedPack): string {
 /** Parses a share code. Everything in it is untrusted input from someone else. */
 export function decodePack(code: string): DecodedPack {
   const s = code.trim();
-  if (!s.startsWith(PREFIX)) throw new Error("Это не код сборки Forever Addons.");
+  if (!s.startsWith(PREFIX)) throw new Error(t("Это не код сборки Forever Addons."));
   let payload: Partial<PackPayload>;
   try {
     payload = JSON.parse(Buffer.from(s.slice(PREFIX.length), "base64url").toString("utf8"));
   } catch {
-    throw new Error("Код сборки повреждён.");
+    throw new Error(t("Код сборки повреждён."));
   }
-  if ((payload.v !== 1 && payload.v !== 2) || !Array.isArray(payload.a)) throw new Error("Неподдерживаемая версия кода сборки.");
+  if ((payload.v !== 1 && payload.v !== 2) || !Array.isArray(payload.a)) throw new Error(t("Неподдерживаемая версия кода сборки."));
   const addons = dedupeAddons(
     payload.a.flatMap((entry) => {
       if (!Array.isArray(entry)) return [];
@@ -45,9 +46,9 @@ export function decodePack(code: string): DecodedPack {
       return ref ? [{ ...ref, name: String(entry[1] ?? ref.id).slice(0, 200) }] : [];
     }),
   );
-  if (addons.length === 0) throw new Error("В сборке нет аддонов.");
+  if (addons.length === 0) throw new Error(t("В сборке нет аддонов."));
   return {
-    name: String(payload.n || "Импорт").slice(0, 100),
+    name: String(payload.n || t("Импорт")).slice(0, 100),
     description: String(payload.d ?? "").slice(0, 1000),
     addons,
   };

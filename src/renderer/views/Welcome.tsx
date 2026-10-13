@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Brand } from "../Brand";
 import { IconCheck, IconFolder, IconRefresh } from "../icons";
 import { KeyGuide } from "../KeyGuide";
+import { LanguagePicker } from "../LanguagePicker";
 import type { View } from "../Sidebar";
-import { api, plural, type Run } from "../util";
+import { api, type Run } from "../util";
 import type { AppState } from "../../shared/types";
+import { plural, t } from "../../shared/i18n";
 
 type Step = "game" | "key" | "done";
 
@@ -14,11 +16,14 @@ export function WelcomeView({ state, run, onDone }: { state: AppState; run: Run;
   return (
     <div className="welcome">
       <div className="welcome-card">
-        <Brand className="welcome-brand" />
+        <div className="welcome-head">
+          <Brand className="welcome-brand" />
+          <LanguagePicker value={state.settings.language || "ru"} run={run} />
+        </div>
         <ol className="welcome-steps">
           {(["game", "key", "done"] as Step[]).map((s, i) => (
             <li key={s} className={s === step ? "active" : undefined}>
-              {i + 1}. {s === "game" ? "Игра" : s === "key" ? "Каталог" : "Готово"}
+              {i + 1}. {s === "game" ? t("Игра") : s === "key" ? t("Каталог") : t("Готово")}
             </li>
           ))}
         </ol>
@@ -63,16 +68,16 @@ function GameStep({ run, onNext }: { run: Run; onNext: () => void }) {
 
   return (
     <>
-      <h2>Где установлен WoW Forever?</h2>
+      <h2>{t("Где установлен WoW Forever?")}</h2>
       {found === null ? (
         <p className="muted">
-          <IconRefresh size={14} className="spin" /> Ищу игру на дисках…
+          <IconRefresh size={14} className="spin" /> {t("Ищу игру на дисках…")}
         </p>
       ) : found.length === 0 ? (
-        <p className="muted">Сам не нашёл. Укажи папку игры: подойдёт папка World of Warcraft или любая внутри неё.</p>
+        <p className="muted">{t("Сам не нашёл. Укажи папку игры: подойдёт папка World of Warcraft или любая внутри неё.")}</p>
       ) : (
         <>
-          <p className="muted">{found.length === 1 ? "Нашёл игру здесь:" : "Нашёл несколько копий, выбери нужную:"}</p>
+          <p className="muted">{found.length === 1 ? t("Нашёл игру здесь:") : t("Нашёл несколько копий, выбери нужную:")}</p>
           <div className="folder-choices">
             {found.map((f) => (
               <label key={f} className={`folder-choice${f === chosen ? " active" : ""}`}>
@@ -85,10 +90,10 @@ function GameStep({ run, onNext }: { run: Run; onNext: () => void }) {
       )}
       <div className="welcome-actions">
         <button onClick={pick}>
-          <IconFolder size={16} /> Указать другую папку
+          <IconFolder size={16} /> {t("Указать другую папку")}
         </button>
         <button className="primary" disabled={!chosen} onClick={next}>
-          Дальше
+          {t("Дальше")}
         </button>
       </div>
     </>
@@ -108,29 +113,29 @@ function KeyStep({ state, run, onNext }: { state: AppState; run: Run; onNext: ()
 
   return (
     <>
-      <h2>Ключ CurseForge</h2>
+      <h2>{t("Ключ CurseForge")}</h2>
       <p className="muted">
-        Можно пропустить: обновления установленных аддонов работают и без ключа. Он нужен, чтобы искать новые аддоны в каталоге.
+        {t("Можно пропустить: обновления установленных аддонов работают и без ключа. Он нужен, чтобы искать новые аддоны в каталоге.")}
       </p>
       <KeyGuide />
       <div className="row">
         <input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder="$2a$10$…" />
         <button onClick={check} disabled={!key.trim() || checking}>
-          {checking ? <IconRefresh size={16} className="spin" /> : null} Проверить
+          {checking ? <IconRefresh size={16} className="spin" /> : null} {t("Проверить")}
         </button>
       </div>
       {saved && key.trim() && state.keyStatus === "ok" && (
         <span className="ok-badge">
-          <IconCheck size={14} /> Ключ работает
+          <IconCheck size={14} /> {t("Ключ работает")}
         </span>
       )}
       {saved && key.trim() && state.keyStatus === "rejected" && (
-        <span className="warn-badge">CurseForge не принял ключ. Проверь, что скопирован весь ключ, или попробуй позже.</span>
+        <span className="warn-badge">{t("CurseForge не принял ключ. Проверь, что скопирован весь ключ, или попробуй позже.")}</span>
       )}
       <div className="welcome-actions">
-        <button onClick={onNext}>Пропустить</button>
+        <button onClick={onNext}>{t("Пропустить")}</button>
         <button className="primary" disabled={!saved || state.keyStatus !== "ok"} onClick={onNext}>
-          Дальше
+          {t("Дальше")}
         </button>
       </div>
     </>
@@ -142,26 +147,26 @@ function DoneStep({ state, onDone }: { state: AppState; onDone: (next: View) => 
   const folders = state.untracked.length;
   return (
     <>
-      <h2>Готово</h2>
+      <h2>{t("Готово")}</h2>
       {folders === 0 ? (
-        <p className="muted">В папке AddOns пока пусто. Аддоны можно найти в каталоге CurseForge или добавить по ссылке.</p>
+        <p className="muted">{t("В папке AddOns пока пусто. Аддоны можно найти в каталоге CurseForge или добавить по ссылке.")}</p>
       ) : (
         <p className="muted">
-          В папке AddOns {folders} {plural(folders, "папка", "папки", "папок")} аддонов, поставленных вручную.
-          {manageable > 0 && ` ${manageable} из них менеджер может взять под управление и дальше обновлять сам.`}
+          {t("В папке AddOns")} {folders} {plural(folders, "папка", "папки", "папок")} {t("аддонов, поставленных вручную.")}
+          {manageable > 0 && t(" {manageable} из них менеджер может взять под управление и дальше обновлять сам.", { manageable: manageable })}
         </p>
       )}
       <div className="welcome-actions">
         {manageable > 0 ? (
           <>
-            <button onClick={() => onDone("installed")}>Позже</button>
+            <button onClick={() => onDone("installed")}>{t("Позже")}</button>
             <button className="primary" onClick={() => onDone("manual")}>
-              Посмотреть аддоны
+              {t("Посмотреть аддоны")}
             </button>
           </>
         ) : (
           <button className="primary" onClick={() => onDone(state.keyStatus === "ok" ? "curseforge" : "installed")}>
-            Начать
+            {t("Начать")}
           </button>
         )}
       </div>

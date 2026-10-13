@@ -13,6 +13,7 @@ import { PacksView } from "./views/Packs";
 import { SettingsView } from "./views/Settings";
 import { WelcomeView } from "./views/Welcome";
 import { WtfView } from "./views/Wtf";
+import { setLanguage, t } from "../shared/i18n";
 
 const VIEWS: View[] = ["installed", "updates", "manual", "packs", "wtf", "curseforge", "github", "jobs", "settings"];
 
@@ -64,7 +65,10 @@ export function App() {
     };
   }, [check, setView]);
 
-  if (!state) return <div className="loading">Загрузка…</div>;
+  if (!state) return <div className="loading">{t("Загрузка…")}</div>;
+  // Module-level language, set before anything below renders a phrase.
+  setLanguage(state.settings.language || "ru");
+  document.documentElement.lang = state.settings.language || "ru";
 
   if (welcome) {
     return (

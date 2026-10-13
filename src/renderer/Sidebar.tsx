@@ -13,6 +13,7 @@ import {
 } from "./icons";
 import { needsAction } from "../shared/addon";
 import { Brand } from "./Brand";
+import { t } from "../shared/i18n";
 
 export type View = "installed" | "updates" | "manual" | "packs" | "wtf" | "curseforge" | "github" | "jobs" | "settings";
 
@@ -44,33 +45,33 @@ export function Sidebar(props: { state: AppState; view: View; setView: (v: View)
   const nav = { view, setView };
 
   let status: { cls: string; text: string };
-  if (!state.settings.gamePath) status = { cls: "bad", text: "Папка игры не выбрана" };
-  else if (state.gameRunning) status = { cls: "warn", text: "Игра запущена" };
-  else if (activeJobs) status = { cls: "busy", text: `Работаю: ${activeJobs}` };
-  else status = { cls: "ok", text: "Готово" };
+  if (!state.settings.gamePath) status = { cls: "bad", text: t("Папка игры не выбрана") };
+  else if (state.gameRunning) status = { cls: "warn", text: t("Игра запущена") };
+  else if (activeJobs) status = { cls: "busy", text: t("Работаю: {activeJobs}", { activeJobs: activeJobs }) };
+  else status = { cls: "ok", text: t("Готово") };
 
   return (
     <aside className="sidebar">
       <Brand />
 
       <nav>
-        <div className="nav-section">Библиотека</div>
-        <Item id="installed" icon={<IconLibrary />} label="Установленные" count={state.addons.length} {...nav} />
-        <Item id="updates" icon={<IconUpdate />} label="Обновления" badge={updates} {...nav} />
-        <Item id="manual" icon={<IconFolder />} label="Вручную" count={state.untracked.length} {...nav} />
+        <div className="nav-section">{t("Библиотека")}</div>
+        <Item id="installed" icon={<IconLibrary />} label={t("Установленные")} count={state.addons.length} {...nav} />
+        <Item id="updates" icon={<IconUpdate />} label={t("Обновления")} badge={updates} {...nav} />
+        <Item id="manual" icon={<IconFolder />} label={t("Вручную")} count={state.untracked.length} {...nav} />
 
-        <div className="nav-section">Инструменты</div>
-        <Item id="packs" icon={<IconPack />} label="Сборки" count={state.packs.length} {...nav} />
-        <Item id="wtf" icon={<IconUsers />} label="Персонажи" {...nav} />
+        <div className="nav-section">{t("Инструменты")}</div>
+        <Item id="packs" icon={<IconPack />} label={t("Сборки")} count={state.packs.length} {...nav} />
+        <Item id="wtf" icon={<IconUsers />} label={t("Персонажи")} {...nav} />
 
-        <div className="nav-section">Источники</div>
+        <div className="nav-section">{t("Источники")}</div>
         <Item id="curseforge" icon={<IconFlame />} label="CurseForge" {...nav} />
         <Item id="github" icon={<IconGithub />} label="GitHub" count={state.addons.filter((a) => a.provider === "github").length} {...nav} />
       </nav>
 
       <div className="sidebar-bottom">
-        <Item id="jobs" icon={<IconDownload />} label="Загрузки" badge={activeJobs || undefined} count={failedJobs} {...nav} />
-        <Item id="settings" icon={<IconSettings />} label="Настройки" {...nav} />
+        <Item id="jobs" icon={<IconDownload />} label={t("Загрузки")} badge={activeJobs || undefined} count={failedJobs} {...nav} />
+        <Item id="settings" icon={<IconSettings />} label={t("Настройки")} {...nav} />
         <div className={`status ${status.cls}`}>
           <span className="dot" />
           <span>{status.text}</span>

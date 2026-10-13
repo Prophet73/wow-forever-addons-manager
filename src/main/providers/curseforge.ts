@@ -1,5 +1,6 @@
 import type { Category, ReleaseType, RemoteFile, SearchPage, SearchParams, SearchSort } from "../../shared/types";
 import { USER_AGENT, type FileQuery, type Provider, type ResolvedAddon } from "./types";
+import { t } from "../../shared/i18n";
 
 const WOW_GAME_ID = 1;
 const OFFICIAL = "https://api.curseforge.com/v1";
@@ -10,7 +11,7 @@ const SORT_FIELDS: Record<SearchSort, number> = { popular: 2, updated: 3, name: 
 
 export class KeyRejectedError extends Error {
   constructor() {
-    super("CurseForge не принял API-ключ. Скорее всего, он ещё не одобрен: проверь статус на console.curseforge.com. Обновления пока работают и без него.");
+    super(t("CurseForge не принял API-ключ. Скорее всего, он ещё не одобрен: проверь статус на console.curseforge.com. Обновления пока работают и без него."));
   }
 }
 
@@ -59,11 +60,11 @@ export class CurseForge implements Provider {
     const slug = /curseforge\.com\/wow\/addons\/([\w-]+)/i.exec(s)?.[1];
     if (!slug) return null;
     if (!this.hasKey) {
-      throw new Error("Без API-ключа CurseForge по ссылке не найти. Вставь Project ID: он есть на странице аддона справа, в блоке «About Project».");
+      throw new Error(t("Без API-ключа CurseForge по ссылке не найти. Вставь Project ID: он есть на странице аддона справа, в блоке «About Project»."));
     }
     const r = await this.json<{ data: OfficialMod[] }>(`${OFFICIAL}/mods/search?gameId=${WOW_GAME_ID}&slug=${encodeURIComponent(slug)}`);
     const m = r.data.find((d) => d.slug === slug) ?? r.data[0];
-    if (!m) throw new Error(`Аддон «${slug}» не найден на CurseForge.`);
+    if (!m) throw new Error(t("Аддон «{slug}» не найден на CurseForge.", { slug: slug }));
     return toResolved(m);
   }
 
@@ -84,7 +85,7 @@ export class CurseForge implements Provider {
       async () => {
         const r = await this.json<{ data: string }>(`${OFFICIAL}/mods/${id}/files/${file.fileId}/download-url`);
         if (r.data) return r.data;
-        throw new Error("Автор аддона запретил скачивание через сторонние программы.");
+        throw new Error(t("Автор аддона запретил скачивание через сторонние программы."));
       },
       async () => `${WEB}/mods/${id}/files/${file.fileId}/download`,
     );
@@ -159,7 +160,7 @@ export class CurseForge implements Provider {
   private async requireKey(): Promise<void> {
     if (this.keyStatus === "rejected") await this.verifyKey();
     if (this.keyStatus === "rejected") throw new KeyRejectedError();
-    if (!this.hasKey) throw new Error("Для поиска нужен CurseForge API-ключ в Настройках.");
+    if (!this.hasKey) throw new Error(t("Для поиска нужен CurseForge API-ключ в Настройках."));
   }
 
   /** Runs the official-API path, falling back to the website endpoints if it fails. */
@@ -211,9 +212,9 @@ export class CurseForge implements Provider {
           this.rejectedKey = this.key;
           throw new KeyRejectedError();
         }
-        throw new Error(`CurseForge отклонил запрос (HTTP ${res.status}).`);
+        throw new Error(t("CurseForge отклонил запрос (HTTP {status}).", { status: res.status }));
       }
-      if (res.status === 403) throw new Error("CurseForge отклонил запрос (403). Для этого нужен рабочий API-ключ в настройках.");
+      if (res.status === 403) throw new Error(t("CurseForge отклонил запрос (403). Для этого нужен рабочий API-ключ в настройках."));
       throw new Error(`CurseForge: HTTP ${res.status}`);
     }
     return (await res.json()) as T;

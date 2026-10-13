@@ -5,6 +5,7 @@ import { Avatar, Banner, Empty, PageHeader } from "../ui";
 import { addonKey, needsAction } from "../../shared/addon";
 import { byCategoryLabel, categoryLabel } from "../categories";
 import { api, cleanError, formatCount, formatDate, storageGet, storageSet, type ViewProps } from "../util";
+import { t } from "../../shared/i18n";
 
 const SORTS: { value: SearchSort; label: string }[] = [
   { value: "popular", label: "Популярные" },
@@ -74,16 +75,15 @@ export function CatalogView({ state, run, setView }: ViewProps) {
   if (!keyOk) {
     return (
       <div className="page">
-        <PageHeader title="CurseForge" subtitle="Каталог аддонов под WoW Forever" />
-        <Empty icon={<IconFlame size={40} />} title={state.keyStatus === "rejected" ? "Ключ не принят" : "Нужен API-ключ"}>
+        <PageHeader title="CurseForge" subtitle={t("Каталог аддонов под WoW Forever")} />
+        <Empty icon={<IconFlame size={40} />} title={state.keyStatus === "rejected" ? t("Ключ не принят") : t("Нужен API-ключ")}>
           <p>
-            Для поиска по CurseForge нужен бесплатный ключ с console.curseforge.com (раздел API Keys). Обновления
-            установленных аддонов работают и без него.
+            {t("Для поиска по CurseForge нужен бесплатный ключ с console.curseforge.com (раздел API Keys). Обновления установленных аддонов работают и без него.")}
           </p>
           <div className="row">
-            {rejected && <button onClick={() => void run(() => api.verifyKey())}>Проверить ещё раз</button>}
+            {rejected && <button onClick={() => void run(() => api.verifyKey())}>{t("Проверить ещё раз")}</button>}
             <button className="primary" onClick={() => setView("settings")}>
-              {rejected ? "Открыть настройки" : "Вставить ключ в настройках"}
+              {rejected ? t("Открыть настройки") : t("Вставить ключ в настройках")}
             </button>
           </div>
         </Empty>
@@ -97,12 +97,12 @@ export function CatalogView({ state, run, setView }: ViewProps) {
     <div className="page">
       <PageHeader
         title="CurseForge"
-        subtitle={page ? `${formatCount(page.total)} аддонов под Forever` : "Каталог аддонов под WoW Forever"}
+        subtitle={page ? t("{p0} аддонов под Forever", { p0: formatCount(page.total) }) : t("Каталог аддонов под WoW Forever")}
       />
       <div className="toolbar">
         <div className="search-box grow">
           <IconSearch size={16} />
-          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Поиск: questie, details, bagnon…" />
+          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("Поиск: questie, details, bagnon…")} />
         </div>
         <select
           value={sort}
@@ -113,7 +113,7 @@ export function CatalogView({ state, run, setView }: ViewProps) {
         >
           {SORTS.map((s) => (
             <option key={s.value} value={s.value}>
-              {s.label}
+              {t(s.label)}
             </option>
           ))}
         </select>
@@ -123,7 +123,7 @@ export function CatalogView({ state, run, setView }: ViewProps) {
             value={categoryId ?? ""}
             onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : null)}
           >
-            <option value="">Все категории</option>
+            <option value="">{t("Все категории")}</option>
             {cats.map((c) => (
               <option key={c.id} value={c.id}>
                 {categoryLabel(c.name)}
@@ -137,7 +137,7 @@ export function CatalogView({ state, run, setView }: ViewProps) {
 
       <div className="catalog-grid">
         {page?.results.map((r) => {
-          const t = tracked.get(addonKey({ provider: "curseforge", id: String(r.projectId) }));
+          const mine = tracked.get(addonKey({ provider: "curseforge", id: String(r.projectId) }));
           const busy = adding.has(r.projectId);
           return (
             <div className="catalog-card" key={r.projectId}>
@@ -154,19 +154,19 @@ export function CatalogView({ state, run, setView }: ViewProps) {
                 <div className="catalog-summary">{r.summary}</div>
               </div>
               <div className="catalog-action">
-                {t ? (
-                  needsAction(t) ? (
-                    <button className="primary sm" onClick={() => run(() => api.install(t.key))}>
-                      {t.installed ? "Обновить" : "Установить"}
+                {mine ? (
+                  needsAction(mine) ? (
+                    <button className="primary sm" onClick={() => run(() => api.install(mine.key))}>
+                      {mine.installed ? t("Обновить") : t("Установить")}
                     </button>
                   ) : (
                     <span className="ok-badge">
-                      <IconCheck size={14} /> стоит
+                      <IconCheck size={14} /> {t("стоит")}
                     </span>
                   )
                 ) : (
                   <button className="primary sm" disabled={busy} onClick={() => install(r.projectId)}>
-                    {busy ? "…" : "Установить"}
+                    {busy ? "…" : t("Установить")}
                   </button>
                 )}
               </div>
@@ -175,11 +175,11 @@ export function CatalogView({ state, run, setView }: ViewProps) {
         })}
       </div>
 
-      {loading && <div className="muted center pad">Загружаю…</div>}
-      {page && !loading && page.results.length === 0 && <Empty icon={<IconSearch size={40} />} title="Ничего не нашлось под Forever" />}
+      {loading && <div className="muted center pad">{t("Загружаю…")}</div>}
+      {page && !loading && page.results.length === 0 && <Empty icon={<IconSearch size={40} />} title={t("Ничего не нашлось под Forever")} />}
       {page && !loading && page.results.length > 0 && page.results.length < page.total && (
         <div className="center pad">
-          <button onClick={() => load(page.results.length)}>Показать ещё</button>
+          <button onClick={() => load(page.results.length)}>{t("Показать ещё")}</button>
         </div>
       )}
     </div>
