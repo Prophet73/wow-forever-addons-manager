@@ -1,0 +1,66 @@
+{
+  "name": "forever-addons",
+  "productName": "Forever Addons",
+  "version": "0.1.0-beta",
+  "description": "Addon manager for WoW Forever",
+  "author": "prophet73",
+  "license": "MIT",
+  "homepage": "https://github.com/Prophet73/wow-forever-addons-manager",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Prophet73/wow-forever-addons-manager.git"
+  },
+  "main": "dist/main/main.js",
+  "private": true,
+  "scripts": {
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "vite build",
+    "build": "npm run build:main && npm run build:renderer",
+    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
+    "start": "npm run build && electron .",
+    "dist": "npm run build && electron-builder --win portable"
+  },
+  "dependencies": {
+    "yauzl": "3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/yauzl": "3.4.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "5.9.3",
+    "vite": "8.3.4"
+  },
+  "build": {
+    "appId": "io.github.prophet73.foreveraddons",
+    "productName": "Forever Addons",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "portable": {
+      "artifactName": "ForeverAddons-portable.exe"
+    },
+    "npmRebuild": false
+  }
+}
