@@ -11,17 +11,25 @@ const REPO = "Prophet73/wow-forever-addons-manager";
 /** Every release ships the exe under this name, so the README's download link never changes. */
 const ASSET = "ForeverAddons-portable.exe";
 
-/** The latest release on GitHub, if it is newer than the running version. */
+/**
+ * The latest release on GitHub, if it is newer than the running version. Read from the website's
+ * releases/latest redirect, not the API: the API allows 60 requests an hour per IP, which a VPN or
+ * shared IP uses up, and then the update banner silently never shows.
+ */
 export async function findAppUpdate(current: string): Promise<AppUpdate | null> {
-  const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
-    headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github+json" },
-  });
-  if (!res.ok) throw new Error(t("GitHub не ответил (HTTP {status}). Попробуй позже.", { status: res.status }));
-  const r = (await res.json()) as { tag_name: string; html_url: string; assets: { name: string; browser_download_url: string; size: number }[] };
-  const version = r.tag_name.replace(/^v/, "");
-  const asset = r.assets.find((a) => a.name === ASSET);
-  if (!asset || compareVersions(version, current) <= 0) return null;
-  return { version, pageUrl: r.html_url, downloadUrl: asset.browser_download_url, size: asset.size, progress: null };
+  const headers = { "User-Agent": USER_AGENT };
+  const latest = await fetch(`https://github.com/${REPO}/releases/latest`, { method: "HEAD", redirect: "manual", headers });
+  const pageUrl = latest.headers.get("location") ?? "";
+  const tag = /\/releases\/tag\/([^/?#]+)$/.exec(pageUrl)?.[1];
+  if (!tag) throw new Error(t("GitHub не ответил (HTTP {status}). Попробуй позже.", { status: latest.status }));
+  const version = decodeURIComponent(tag).replace(/^v/, "");
+  if (compareVersions(version, current) <= 0) return null;
+  const downloadUrl = `https://github.com/${REPO}/releases/download/${tag}/${ASSET}`;
+  // The size lets the download be checked for completeness before it replaces the running exe.
+  const asset = await fetch(downloadUrl, { method: "HEAD", headers });
+  const size = Number(asset.headers.get("content-length"));
+  if (!asset.ok || !size) return null;
+  return { version, pageUrl, downloadUrl, size, progress: null };
 }
 
 /** Semver order: "0.2.0" > "0.1.0", and a release beats its own pre-release, "0.1.0" > "0.1.0-beta". */
