@@ -1,17 +1,25 @@
 import { useState } from "react";
 import type { AppState } from "../../shared/types";
 import { IconCheck, IconRefresh } from "../icons";
-import { api, type Run } from "../util";
+import { api, cleanError, type Run } from "../util";
 import { t } from "../../shared/i18n";
 
 /** The app's own version and a button that asks GitHub for a newer one. */
 export function AppUpdateCheck({ state, run }: { state: AppState; run: Run }) {
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // The error goes under the button: the page-wide banner sits at the top, out of sight from here.
   const check = async () => {
     setChecking(true);
-    setChecked(await run(() => api.checkAppUpdate()));
+    setError(null);
+    await run(() =>
+      api.checkAppUpdate().catch((e) => {
+        setError(cleanError(e));
+      }),
+    );
+    setChecked(true);
     setChecking(false);
   };
 
@@ -26,7 +34,9 @@ export function AppUpdateCheck({ state, run }: { state: AppState; run: Run }) {
         </button>
       </div>
       {checked && !checking && (
-        state.appUpdate ? (
+        error ? (
+          <span className="warn-badge">{error}</span>
+        ) : state.appUpdate ? (
           <span className="warn-badge">{t("Есть версия")} {state.appUpdate.version}{t(": нажми «Обновить и перезапустить» вверху.")}</span>
         ) : (
           <span className="ok-badge">

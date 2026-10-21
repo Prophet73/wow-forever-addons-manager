@@ -4,10 +4,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { PackFileContents, PackFiles } from "./packFile";
-import { copyProfileKeys, dropProfileKeys } from "./profileKeys";
+import { copyProfileKeys, dropProfileKeys, profileRealms } from "./profileKeys";
 import { NEEDTOKNOW_FILE, renameProfiles } from "./timers/needToKnow";
 import { accountDir, backupBeforeWrite, charDir, GROUP_FILES, listCharacters } from "./wtf";
-import { copyXPerlPositions, xperlName } from "./xperlPositions";
+import { copyXPerlPositions, xperlName, xperlRealms } from "./xperlPositions";
 
 /** Character files that travel whole: everything but the game options, which depend on the PC. */
 const CHARACTER_FILES = [GROUP_FILES.addonList, GROUP_FILES.layout, GROUP_FILES.chat, GROUP_FILES.bindings, GROUP_FILES.macros].flat();
@@ -87,17 +87,37 @@ export async function applySettings(gamePath: string, charId: string, pack: Pick
 
   const from = xperlName(pack.from);
   const to = xperlName(folder);
+  // Read before the pack's files replace the target's: the pack only knows the sender's realms.
+  const targetGame = xperlRealms(adir, folder);
+  const sourceGame = new Set<string>();
+  for (const e of entries.filter((e) => e.scope === "account")) {
+    targetGame.push(...profileRealms(read(path.join(adir, ...e.rel.split("/"))) ?? "", to).game);
+    profileRealms(e.text, from).game.forEach((r) => sourceGame.add(r));
+  }
+  const targetRealms = [...new Set(targetGame)];
+  const realms = realmMap(pack.from, folder, [...sourceGame], targetRealms);
   for (const e of entries) {
     const file = path.join(e.scope === "character" ? cdir : adir, ...e.rel.split("/"));
     let text = e.text;
     if (e.rel === CVAR_FILE) text = mergeCvars(read(file) ?? "", panelCvars(text) ?? "");
-    else if (e.scope === "account") text = copyProfileKeys(text, from, to);
+    else if (e.scope === "account") text = copyProfileKeys(text, from, to, realms);
     if (e.rel === `SavedVariables/${NEEDTOKNOW_FILE}.lua` && e.scope === "character") text = renameProfiles(text, to);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, text, "utf8");
   }
-  if (accountFiles.includes("SavedVariables/XPerlForever.lua")) copyXPerlPositions(adir, pack.from, [folder]);
+  if (accountFiles.includes("SavedVariables/XPerlForever.lua")) copyXPerlPositions(adir, pack.from, [folder], targetRealms);
   return entries.length;
+}
+
+/**
+ * Where the sender's realms go for the target: the realm part of the WTF folder to the target's,
+ * and the game's realm names to the ones the target plays on (if any are known yet).
+ */
+function realmMap(fromFolder: string, toFolder: string, sourceGame: string[], targetGame: string[]): Map<string, string[]> {
+  const realm = (folder: string) => folder.split("-").slice(1).join("-");
+  const map = new Map<string, string[]>([[realm(fromFolder), [realm(toFolder)]]]);
+  if (targetGame.length) for (const r of sourceGame) map.set(r, targetGame);
+  return map;
 }
 
 const cvarName = (line: string) => /^SET (\S+) /.exec(line)?.[1];
