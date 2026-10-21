@@ -46,8 +46,8 @@ export const EN: Record<string, string> = {
   "Будет установлено: {missing} {p1}.": "Will install: {missing} {p1}.",
   "Бэкапов пока нет. Они появляются перед каждым копированием.": "No backups yet. One is made before every copy.",
   "Бэкапы{p0}": "Backups{p0}",
-  "В «{gamePath}» и рядом нет WowB.exe. Укажи папку, куда установлен WoW Forever.": "There is no WowB.exe in or near “{gamePath}”. Choose the folder where WoW Forever is installed.",
-  "В «{p0}» и рядом нет WowB.exe. Выбери папку, куда установлен WoW Forever.": "There is no WowB.exe in or near “{p0}”. Choose the folder where WoW Forever is installed.",
+  "В «{gamePath}» и рядом нет клиента WoW Forever. Укажи папку, куда он установлен.": "There is no WoW Forever client in or near “{gamePath}”. Choose the folder where it is installed.",
+  "В «{p0}» и рядом нет клиента WoW Forever. Выбери папку, куда он установлен.": "There is no WoW Forever client in or near “{p0}”. Choose the folder where it is installed.",
   "В архиве нет папок аддона (.toc не найден).": "The archive has no addon folders (no .toc found).",
   "В очереди": "Queued",
   "В папке AddOns": "The AddOns folder has",
@@ -211,8 +211,10 @@ export const EN: Record<string, string> = {
   "Папка WoW Forever": "WoW Forever folder",
   "Папка игры не выбрана": "Game folder not set",
   "Папка клиента WoW Forever": "WoW Forever client folder",
-  "Папка, где лежит WowB.exe. Можно выбрать и папку World of Warcraft: нужная найдётся внутри.":
-    "The folder with WowB.exe. You can also pick the World of Warcraft folder: the right one is found inside.",
+  "Бета лежит в _classic_beta_, основной клиент в _forever_. Можно выбрать и папку World of Warcraft: нужная найдётся внутри. У каждого клиента свой список аддонов.":
+    "The beta lives in _classic_beta_, the main client in _forever_. You can also pick the World of Warcraft folder: the right one is found inside. Each client has its own addon list.",
+  "Найденные клиенты": "Clients found",
+  "Дождись, пока закончатся установки, и смени клиент.": "Wait for the installs to finish, then switch the client.",
   "Папки в AddOns": "Folders in AddOns",
   "Папки в Interface\\AddOns, которые менеджер не отслеживает": "Folders in Interface\\AddOns the manager doesn't track",
   "Персонажей не найдено: зайди в игру хотя бы раз.": "No characters found: log in at least once.",

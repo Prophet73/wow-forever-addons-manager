@@ -3,11 +3,25 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 
-/** The Forever client; Classic Era and retail folders have other exes, so they never match. */
+/** The Forever beta client; Classic Era folders have other exes, so they never match. */
 const CLIENT_EXE = "WowB.exe";
+/**
+ * The Forever release client ships Wow.exe like retail, so it is told apart by the product in
+ * .flavor.info ("wowf"; retail says "wow").
+ */
+const FOREVER_FLAVOR = "wowf";
+const CLIENT_PROCESSES = ["WowB", "Wow"];
+
+function flavor(dir: string): string | null {
+  try {
+    return fs.readFileSync(path.join(dir, ".flavor.info"), "utf8").split(/\r?\n/)[1]?.trim() ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export function isGameFolder(dir: string): boolean {
-  return fs.existsSync(path.join(dir, CLIENT_EXE));
+  return fs.existsSync(path.join(dir, CLIENT_EXE)) || flavor(dir) === FOREVER_FLAVOR;
 }
 
 async function subdirs(dir: string): Promise<string[]> {
@@ -47,10 +61,16 @@ export async function resolveGameFolder(picked: string): Promise<string | null> 
 function runningClient(): Promise<string | null> {
   if (process.platform !== "win32") return Promise.resolve(null);
   return new Promise((resolve) => {
-    const cmd = `(Get-Process ${path.parse(CLIENT_EXE).name} -ErrorAction SilentlyContinue | Select-Object -First 1).Path`;
-    execFile("powershell", ["-NoProfile", "-Command", cmd], { windowsHide: true, timeout: 5000 }, (err, stdout) => {
-      const exe = stdout?.trim();
-      resolve(err || !exe ? null : path.dirname(exe));
+    const cmd = `Get-Process ${CLIENT_PROCESSES.join(",")} -ErrorAction SilentlyContinue | ForEach-Object { $_.Path }`;
+    // Get-Process exits with 1 when some of the names aren't running, yet prints the rest.
+    execFile("powershell", ["-NoProfile", "-Command", cmd], { windowsHide: true, timeout: 5000 }, (_err, stdout) => {
+      const dir = (stdout ?? "")
+        .split(/\r?\n/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((exe) => path.dirname(exe))
+        .find(isGameFolder);
+      resolve(dir ?? null);
     });
   });
 }

@@ -18,12 +18,21 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 interface StoreData {
-  version: 2;
+  version: 3;
   settings: Settings;
-  addons: TrackedAddon[];
+  /**
+   * Tracked addons per client folder (clientKey): the beta and the release client each have
+   * their own AddOns. A new name, not `addons`, so an older app version reading this file starts
+   * empty instead of failing on the changed shape.
+   */
+  clientAddons: Record<string, TrackedAddon[]>;
   packs: Pack[];
   /** Classes chosen by hand, by WTF character id. */
   characterClasses: Record<string, WowClass>;
+}
+
+function clientKey(gamePath: string): string {
+  return gamePath ? path.resolve(gamePath).toLowerCase() : "";
 }
 
 /** JSON file store in the app's userData folder. Writes are atomic (tmp + rename). */
@@ -37,16 +46,25 @@ export class Store {
   }
 
   private load(): StoreData {
-    let raw: Partial<{ settings: Settings; addons: unknown[]; packs: Pack[]; characterClasses: Record<string, unknown> }>;
+    let raw: Partial<{
+      settings: Settings;
+      clientAddons: Record<string, unknown[]>;
+      addons: unknown[];
+      packs: Pack[];
+      characterClasses: Record<string, unknown>;
+    }>;
     try {
       raw = JSON.parse(fs.readFileSync(this.file, "utf8"));
     } catch {
-      return { version: 2, settings: { ...DEFAULT_SETTINGS }, addons: [], packs: [], characterClasses: {} };
+      return { version: 3, settings: { ...DEFAULT_SETTINGS }, clientAddons: {}, packs: [], characterClasses: {} };
     }
+    const settings = { ...DEFAULT_SETTINGS, ...raw.settings };
+    // Version 2 kept one list, which belonged to the client chosen at the time.
+    const byClient = raw.clientAddons ?? (raw.addons?.length ? { [clientKey(settings.gamePath)]: raw.addons } : {});
     return {
-      version: 2,
-      settings: { ...DEFAULT_SETTINGS, ...raw.settings },
-      addons: (raw.addons ?? []).map(migrateAddon),
+      version: 3,
+      settings,
+      clientAddons: Object.fromEntries(Object.entries(byClient).map(([k, list]) => [k, list.map(migrateAddon)])),
       packs: (raw.packs ?? []).map((p) => ({ ...p, addons: p.addons.map(migrateRef) })),
       characterClasses: Object.fromEntries(Object.entries(raw.characterClasses ?? {}).filter(([, c]) => isWowClass(c))) as Record<string, WowClass>,
     };
@@ -79,24 +97,30 @@ export class Store {
     this.save();
   }
 
+  /** Addons tracked in the client folder chosen in settings. */
   get addons(): TrackedAddon[] {
-    return this.data.addons;
+    return this.data.clientAddons[clientKey(this.settings.gamePath)] ?? [];
+  }
+
+  private setAddons(list: TrackedAddon[]): void {
+    this.data.clientAddons[clientKey(this.settings.gamePath)] = list;
+    this.save();
   }
 
   getAddon(key: string): TrackedAddon | undefined {
-    return this.data.addons.find((a) => a.key === key);
+    return this.addons.find((a) => a.key === key);
   }
 
   upsertAddon(addon: TrackedAddon): void {
-    const i = this.data.addons.findIndex((a) => a.key === addon.key);
-    if (i >= 0) this.data.addons[i] = addon;
-    else this.data.addons.push(addon);
-    this.save();
+    const list = [...this.addons];
+    const i = list.findIndex((a) => a.key === addon.key);
+    if (i >= 0) list[i] = addon;
+    else list.push(addon);
+    this.setAddons(list);
   }
 
   removeAddon(key: string): void {
-    this.data.addons = this.data.addons.filter((a) => a.key !== key);
-    this.save();
+    this.setAddons(this.addons.filter((a) => a.key !== key));
   }
 
   get packs(): Pack[] {

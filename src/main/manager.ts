@@ -117,7 +117,9 @@ export class Manager {
   async saveSettings(patch: Partial<Settings>): Promise<AppState> {
     if (patch.gamePath) {
       const found = await resolveGameFolder(patch.gamePath);
-      if (!found) throw new Error(t("В «{gamePath}» и рядом нет WowB.exe. Укажи папку, куда установлен WoW Forever.", { gamePath: patch.gamePath }));
+      if (!found) throw new Error(t("В «{gamePath}» и рядом нет клиента WoW Forever. Укажи папку, куда он установлен.", { gamePath: patch.gamePath }));
+      // Jobs write into the chosen client's addon list, so it can't change under them.
+      if (found !== this.settings.gamePath && this.busy) throw new Error(t("Дождись, пока закончатся установки, и смени клиент."));
       patch = { ...patch, gamePath: found };
     }
     const keyChanged = patch.curseforgeApiKey !== undefined && patch.curseforgeApiKey !== this.settings.curseforgeApiKey;

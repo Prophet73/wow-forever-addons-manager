@@ -120,7 +120,7 @@ function registerIpc(): void {
     const r = await dialog.showOpenDialog(win!, { title: t("Папка WoW Forever"), properties: ["openDirectory"] });
     if (r.canceled) return null;
     const found = await resolveGameFolder(r.filePaths[0]);
-    if (!found) throw new Error(t("В «{p0}» и рядом нет WowB.exe. Выбери папку, куда установлен WoW Forever.", { p0: r.filePaths[0] }));
+    if (!found) throw new Error(t("В «{p0}» и рядом нет клиента WoW Forever. Выбери папку, куда он установлен.", { p0: r.filePaths[0] }));
     return found;
   });
 }

@@ -31,9 +31,9 @@ interface Payload {
 
 const SV_NAME = "[\\w!+ -][\\w!.+ -]*\\.lua";
 const CHARACTER_FILE = new RegExp(
-  `^character/(AddOns\\.txt|layout-local\\.txt|edit-mode-cache-character\\.txt|chat-cache\\.txt|bindings-cache\\.wtf|click-bindings-cache\\.txt|macros-cache\\.txt|SavedVariables/${SV_NAME})$`,
+  `^character/(AddOns\\.txt|layout-local\\.txt|edit-mode-cache-character\\.txt|chat-cache\\.txt|bindings-cache\\.wtf|click-bindings-cache\\.txt|macros-cache\\.txt|config-cache\\.wtf|SavedVariables/${SV_NAME})$`,
 );
-const ACCOUNT_FILE = new RegExp(`^account/(bindings-cache\\.wtf|SavedVariables/${SV_NAME})$`);
+const ACCOUNT_FILE = new RegExp(`^account/(bindings-cache\\.wtf|config-cache\\.wtf|SavedVariables/${SV_NAME})$`);
 
 export function writePackFile(file: string, contents: PackFileContents): void {
   const { from, files, ...pack } = contents;

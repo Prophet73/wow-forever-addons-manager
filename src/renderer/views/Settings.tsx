@@ -18,8 +18,12 @@ export function SettingsView({ state, run }: ViewProps) {
   const [backups, setBackups] = useState(s.backupsToKeep);
   const [checkOnStartup, setCheckOnStartup] = useState(s.checkOnStartup);
   const [saved, setSaved] = useState(false);
+  const [clients, setClients] = useState<string[]>([]);
   // Saving turns a picked parent or subfolder into the client folder; show what was stored.
   useEffect(() => setGamePath(s.gamePath), [s.gamePath]);
+  useEffect(() => {
+    api.findGameFolders().then(setClients, () => setClients([]));
+  }, []);
 
   const patch = {
     gamePath: gamePath.trim(),
@@ -82,8 +86,21 @@ export function SettingsView({ state, run }: ViewProps) {
               <IconFolder size={16} /> {t("Обзор")}
             </button>
           </div>
-          <span className="hint">{t("Папка, где лежит WowB.exe. Можно выбрать и папку World of Warcraft: нужная найдётся внутри.")}</span>
+          <span className="hint">
+            {t("Бета лежит в _classic_beta_, основной клиент в _forever_. Можно выбрать и папку World of Warcraft: нужная найдётся внутри. У каждого клиента свой список аддонов.")}
+          </span>
         </label>
+        {clients.length > 1 && (
+          <div className="folder-choices">
+            <span className="muted">{t("Найденные клиенты")}</span>
+            {clients.map((f) => (
+              <label key={f} className={`folder-choice${f.toLowerCase() === gamePath.toLowerCase() ? " active" : ""}`}>
+                <input type="radio" name="client" checked={f.toLowerCase() === gamePath.toLowerCase()} onChange={() => setGamePath(f)} />
+                <span className="mono">{f}</span>
+              </label>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="card form">
