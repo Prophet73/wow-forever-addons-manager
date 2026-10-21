@@ -46,6 +46,11 @@ export function compareVersions(a: string, b: string): number {
  * Downloads the new exe next to the running one and swaps it in once the app has quit. A running
  * exe can't be overwritten, so a detached script retries the move for a minute, then starts the
  * new version. The caller quits the app right after this returns.
+ *
+ * The script uses cmd built-ins only: a detached cmd has no console, and any console program it
+ * started (`timeout`, `chcp`) would pop up a window of its own. So it retries the move in a tight
+ * loop (a failed move takes about 6 ms, so the cap is roughly a minute), and the paths, which may contain
+ * Cyrillic, come in through the environment instead of the OEM-encoded script.
  */
 export async function installAppUpdate(update: AppUpdate, exe: string, onProgress: (fraction: number | null) => void): Promise<void> {
   const next = `${exe}.new`;
@@ -53,17 +58,15 @@ export async function installAppUpdate(update: AppUpdate, exe: string, onProgres
   const script = path.join(os.tmpdir(), "forever-addons-update.cmd");
   const lines = [
     "@echo off",
-    // The exe path may contain Cyrillic; the script is written as UTF-8.
-    "chcp 65001 >nul",
     "set n=0",
     ":wait",
     "set /a n+=1",
-    "if %n% gtr 60 exit /b 1",
-    "timeout /t 1 /nobreak >nul",
-    `move /y "${next}" "${exe}" >nul 2>&1 || goto wait`,
-    `start "" "${exe}"`,
+    "if %n% gtr 10000 exit /b 1",
+    'move /y "%FA_NEXT%" "%FA_EXE%" >nul 2>&1 || goto wait',
+    'start "" "%FA_EXE%"',
     'del "%~f0"',
   ];
   fs.writeFileSync(script, lines.join("\r\n") + "\r\n", "utf8");
-  spawn("cmd.exe", ["/c", script], { detached: true, stdio: "ignore", windowsHide: true }).unref();
+  const env = { ...process.env, FA_NEXT: next, FA_EXE: exe };
+  spawn("cmd.exe", ["/c", script], { detached: true, stdio: "ignore", windowsHide: true, env }).unref();
 }
