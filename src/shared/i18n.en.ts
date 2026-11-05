@@ -163,8 +163,8 @@ export const EN: Record<string, string> = {
   "Нашёл несколько копий, выбери нужную:": "Found several copies, pick one:",
   "Не понял, что это. Вставь ссылку на CurseForge или GitHub, или Project ID с CurseForge.": "Not sure what that is. Paste a CurseForge or GitHub link, or a CurseForge Project ID.",
   "Не удалось открыть архив": "Couldn't open the archive",
-  "Не удалось скачать файл: HTTP 403. Если версия вышла только что, CDN её ещё не раздаёт: попробуй через несколько минут.":
-    "Couldn't download the file: HTTP 403. If the version just came out, the CDN isn't serving it yet: try again in a few minutes.",
+  "Не удалось скачать файл: HTTP 403. Сервер запретил скачивание. Возможные причины: ограничения доступа или временная недоступность файла.":
+    "Couldn't download the file: HTTP 403. The server denied the download. Possible causes: access restrictions or temporary file unavailability.",
   "Не удалось скачать файл: HTTP {status}": "Couldn't download the file: HTTP {status}",
   "Неверное имя файла: {sv}": "Invalid file name: {sv}",
   "Неверный аккаунт: {account}": "Invalid account: {account}",

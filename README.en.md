@@ -17,7 +17,7 @@
 <p align="center">
   <a href="https://github.com/Prophet73/wow-forever-addons-manager/releases/latest/download/ForeverAddons-portable.exe"><b>⬇ Download for Windows</b></a>
   <br />
-  <sub>Free · a single file, nothing to install · beta</sub>
+  <sub>Free · a single file, nothing to install</sub>
   <br />
   <sub><a href="https://github.com/Prophet73/wow-forever-addons-manager/releases">What's new</a></sub>
 </p>

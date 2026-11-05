@@ -44,7 +44,7 @@ async function fetchFile(url: string): Promise<Response> {
     await new Promise((r) => setTimeout(r, delay));
     res = await get();
   }
-  if (res.status === 403) throw new Error(t("Не удалось скачать файл: HTTP 403. Если версия вышла только что, CDN её ещё не раздаёт: попробуй через несколько минут."));
+  if (res.status === 403) throw new Error(t("Не удалось скачать файл: HTTP 403. Сервер запретил скачивание. Возможные причины: ограничения доступа или временная недоступность файла."));
   if (!res.ok || !res.body) throw new Error(t("Не удалось скачать файл: HTTP {status}", { status: res.status }));
   return res;
 }
