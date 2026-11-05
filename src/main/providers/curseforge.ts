@@ -87,7 +87,14 @@ export class CurseForge implements Provider {
         if (r.data) return r.data;
         throw new Error(t("Автор аддона запретил скачивание через сторонние программы."));
       },
-      async () => `${WEB}/mods/${id}/files/${file.fileId}/download`,
+      // The website download endpoint can be blocked by Cloudflare even when its
+      // file-list endpoint works. Public files are served directly by ForgeCDN.
+      async () => {
+        if (!Number.isSafeInteger(file.fileId) || file.fileId <= 0 || !file.fileName) {
+          throw new Error("CurseForge: invalid file metadata");
+        }
+        return `https://edge.forgecdn.net/files/${Math.floor(file.fileId / 1000)}/${file.fileId % 1000}/${encodeURIComponent(file.fileName)}`;
+      },
     );
   }
 
